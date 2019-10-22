@@ -7,3 +7,4 @@ D:\Joel\Github\Repositories\DirtBot\obj\Debug\netcoreapp2.1\DirtBot.AssemblyInfo
 D:\Joel\Github\Repositories\DirtBot\obj\Debug\netcoreapp2.1\DirtBot.AssemblyInfo.cs
 D:\Joel\Github\Repositories\DirtBot\obj\Debug\netcoreapp2.1\DirtBot.dll
 D:\Joel\Github\Repositories\DirtBot\obj\Debug\netcoreapp2.1\DirtBot.pdb
+D:\Joel\Github\Repositories\DirtBot\obj\Debug\netcoreapp2.1\DirtBot.csprojAssemblyReference.cache

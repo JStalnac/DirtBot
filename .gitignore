@@ -1,3 +1,6 @@
 .vs/*
 .git/*
 config.json
+bin/*
+obj/*
+

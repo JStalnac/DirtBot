@@ -22,7 +22,8 @@ namespace DirtBot
         {
             try
             {
-                string json = File.ReadAllText("config.json");
+                StreamReader reader = new StreamReader("config.json");
+                string json = reader.ReadToEnd();
                 var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
 
                 // Bot token
@@ -39,15 +40,12 @@ namespace DirtBot
                 // Prefix for convenience
                 prefix = data["prefix"].ToString();
                 // The interval that the cache will be updated in milliseconds
-                cacheUpdateInterval = Int32.Parse(data["cacheUpdateInterval"].ToString());
+                cacheUpdateInterval = int.Parse(data["cacheUpdateInterval"].ToString());
             }
             catch (FileNotFoundException e)
             {
                 // The message has the error message ready for us so we won't have to type it lol
                 Console.WriteLine($"{e.Message}\nCreating it...\n");
-
-                // Make sure the file exists.
-                File.Create("config.json");
 
                 // Restore config.
                 RestoreDefaultConfig();
@@ -65,7 +63,7 @@ namespace DirtBot
                 RestoreDefaultConfig();
                 Environment.Exit(1);
             }
-            catch (KeyNotFoundException e) 
+            catch (KeyNotFoundException e)
             {
                 Console.WriteLine($"Unable to read config.json! Error: {e.Message}\nRestoring it to default!\n");
                 RestoreDefaultConfig();
@@ -80,9 +78,9 @@ namespace DirtBot
             // Try to write
             try { writer.Write(defaultConfig); }
             // Error...
-            catch (Exception e) 
+            catch (Exception e)
             {
-                Console.WriteLine($"Unable to restore config. Error: {e.Message}"); 
+                Console.WriteLine($"Unable to restore config. Error: {e.Message}");
                 Environment.Exit(1);  
             }
             // Finally close the file. Oh wait we don't even have because the environment will exit...
