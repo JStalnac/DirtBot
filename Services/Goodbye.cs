@@ -46,7 +46,7 @@ namespace DirtBot.Services
                     if (dataObject.Value >= int.Parse(dataObject.DeafaultValue.ToString())) 
                     {
                         string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-                        await ServiceHelper.SendMessageIfAllowed(response, message.Channel);
+                        await SendMessageIfAllowed(response, message.Channel);
                         dataObject.Value = 0;
                     }
                 }

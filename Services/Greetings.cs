@@ -33,9 +33,9 @@ namespace DirtBot.Services
             {
                 if (message.Content.ToLower().TrimEnd(' ').Contains(str))
                 {
-                    if (ServiceHelper.IsDMChannel(message.Channel))
+                    if (IsDMChannel(message.Channel))
                     {
-                        string response = ServiceHelper.Capitalize(ServiceHelper.ChooseRandomString(responses));
+                        string response = Capitalize(ChooseRandomString(responses));
                         await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
                     }
 
@@ -48,7 +48,7 @@ namespace DirtBot.Services
                     if (dataObject.Value >= int.Parse(dataObject.DeafaultValue.ToString()))
                     {
                         string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-                        await ServiceHelper.SendMessageIfAllowed(response, message.Channel);
+                        await SendMessageIfAllowed(response, message.Channel);
                         dataObject.Value = 0;
                     }
                 }

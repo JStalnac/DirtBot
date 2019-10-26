@@ -55,8 +55,8 @@ namespace DirtBot.Services
         private async Task SendAngryMessage(SocketUserMessage message)
         {
             string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-            await ServiceHelper.SendMessageIfAllowed(response, message.Channel);
-            await ServiceHelper.AddReactionIfAllowed(emojis.DirtDontPingMe, message);
+            await SendMessageIfAllowed(response, message.Channel);
+            await AddReactionIfAllowed(emojis.DirtDontPingMe, message);
         }
     }
 }
