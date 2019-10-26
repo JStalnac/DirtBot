@@ -38,7 +38,6 @@ namespace DirtBot
 
                 // Emojis
                 Emojis emojis = services.GetRequiredService<Emojis>();
-                emojis.AddEmoji("<:dirtdontpingme:634748801617231892>");
 
                 // Initializing services
                 services.GetRequiredService<CommandHandlingService>();

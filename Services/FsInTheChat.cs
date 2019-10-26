@@ -38,7 +38,7 @@ namespace DirtBot.Services
                 obj.Value += 1;
                 if (obj.Value >= int.Parse(obj.DeafaultValue.ToString()))
                 {
-                    await ServiceHelper.SendMessageIfAllowed("F", message.Channel);
+                    await SendMessageIfAllowed("F", message.Channel);
                     obj.Value = 0;
                 }
             }

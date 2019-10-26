@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using DirtBot.Caching;
 using Discord.WebSocket;
+using SmartFormat;
 
 namespace DirtBot.Services
 {
@@ -12,8 +13,9 @@ namespace DirtBot.Services
         // These are things which people can say.
         string[] messages = { "moi", "moi!", "terve", "terve!", "hei", "hei!", "huomenta!", "huomenta", "aamua", "aamua!", "iltaa", "iltaa!" };
         // These will be capitalized. Stuff that I will respond.
-        string[] responses = { "moi", "moi! ", "moi 👋", "moi! 👋", "Moi {0}!", "Moi {0} 👋", "Moi {0}", "terve", "terve!", "terve 👋", "terve! 👋", "huomenta!", "huomenta", "oikein hyvää huomenta {0}",
-        "hyvää huomenta {0}", "huomenta {0}", "huomenta {0} 👋" };
+        string[] responses = { "moi", "moi! ", "moi 👋", "moi! 👋", "Moi {Username}!", "Moi {Username} 👋", "Moi {Username}", 
+            "terve", "terve!", "terve 👋", "terve! 👋", "huomenta!", "huomenta", "oikein hyvää huomenta {Username}", 
+            "hyvää huomenta {Username}", "huomenta {Username}", "huomenta {Username} 👋" };
 
         public Greetings(IServiceProvider services)
         {
@@ -24,7 +26,7 @@ namespace DirtBot.Services
 
         public async Task MessageRevievedAsync(SocketMessage arg)
         {
-            if (ServiceHelper.IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.Id == discord.CurrentUser.Id) return;
 
             foreach (string str in messages)
@@ -45,7 +47,8 @@ namespace DirtBot.Services
                     dataObject.Value += 1;
                     if (dataObject.Value >= int.Parse(dataObject.DeafaultValue.ToString()))
                     {
-                        string response = ServiceHelper.FormatMessage(ServiceHelper.ChooseRandomString(responses), message, true);
+                        string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
+                        //string response = ServiceHelper.FormatMessage(ServiceHelper.ChooseRandomString(responses), message, true);
                         await ServiceHelper.SendMessageIfAllowed(response, message.Channel);
                         dataObject.Value = 0;
                     }

@@ -54,6 +54,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[12.0.3-beta1, )"
+            },
+            "SmartFormat.NET": {
+              "target": "Package",
+              "version": "[2.4.2, )"
             }
           },
           "imports": [

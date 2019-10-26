@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using DirtBot.Caching;
 using Discord.WebSocket;
+using SmartFormat;
 
 namespace DirtBot.Services
 {
@@ -12,7 +13,7 @@ namespace DirtBot.Services
         // These are things which people can say.
         string[] messages = { "moikka", "moikka", "heippa", "heippa", "bye", "bye!" };
         // These will be capitalized. Stuff that I will respond.
-        string[] responses = { "moikka!", "moikka! 👋", "Moikka {0}! 👋", "Moikka {0}!", "hyvää päivän jatkoa {0}!", "👋" };
+        string[] responses = { "moikka!", "moikka! 👋", "Moikka {Username}! 👋", "Moikka {Username}!", "hyvää päivän jatkoa {Username}!", "👋" };
 
         public Goodbye(IServiceProvider services)
         {
@@ -23,16 +24,16 @@ namespace DirtBot.Services
 
         public async Task MessageRevievedAsync(SocketMessage arg)
         {
-            if (ServiceHelper.IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.Id == discord.CurrentUser.Id) return;
 
             foreach (string str in messages)
             {
                 if (message.Content.ToLower().Contains(str))
                 {
-                    if (ServiceHelper.IsDMChannel(message.Channel)) 
+                    if (IsDMChannel(message.Channel)) 
                     {
-                        string response = ServiceHelper.Capitalize(ServiceHelper.ChooseRandomString(responses));
+                        string response = Capitalize(ChooseRandomString(responses));
                         await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
                     }
 
@@ -44,7 +45,8 @@ namespace DirtBot.Services
                     dataObject.Value += 1;
                     if (dataObject.Value >= int.Parse(dataObject.DeafaultValue.ToString())) 
                     {
-                        string response = ServiceHelper.FormatMessage(ServiceHelper.ChooseRandomString(responses), message, true);
+                        string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
+                        //string response = ServiceHelper.FormatMessage(ChooseRandomString(responses), message, true);
                         await ServiceHelper.SendMessageIfAllowed(response, message.Channel);
                         dataObject.Value = 0;
                     }

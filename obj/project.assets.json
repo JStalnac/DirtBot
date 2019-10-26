@@ -314,6 +314,18 @@
           "lib/netstandard2.0/Newtonsoft.Json.dll": {}
         }
       },
+      "SmartFormat.NET/2.4.2": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/SmartFormat.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/SmartFormat.dll": {}
+        }
+      },
       "System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -1116,6 +1128,26 @@
         "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.xml",
         "newtonsoft.json.12.0.3-beta1.nupkg.sha512",
         "newtonsoft.json.nuspec"
+      ]
+    },
+    "SmartFormat.NET/2.4.2": {
+      "sha512": "5G4Y7v0Nq+jQe7I4i1DOPlG4DeiFz6chU+0p5NH7Gh6SFNbDxCQxoLCPNg5JtB9jXpv9pSocYCdmfumHnABvSg==",
+      "type": "package",
+      "path": "smartformat.net/2.4.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net45/SmartFormat.dll",
+        "lib/net45/SmartFormat.pdb",
+        "lib/net45/SmartFormat.xml",
+        "lib/netstandard1.6/SmartFormat.dll",
+        "lib/netstandard1.6/SmartFormat.pdb",
+        "lib/netstandard1.6/SmartFormat.xml",
+        "lib/netstandard2.0/SmartFormat.dll",
+        "lib/netstandard2.0/SmartFormat.pdb",
+        "lib/netstandard2.0/SmartFormat.xml",
+        "smartformat.net.2.4.2.nupkg.sha512",
+        "smartformat.net.nuspec"
       ]
     },
     "System.Collections/4.3.0": {
@@ -2093,7 +2125,8 @@
     ".NETCoreApp,Version=v2.1": [
       "Discord.Net >= 2.1.1",
       "Microsoft.NETCore.App >= 2.1.0",
-      "Newtonsoft.Json >= 12.0.3-beta1"
+      "Newtonsoft.Json >= 12.0.3-beta1",
+      "SmartFormat.NET >= 2.4.2"
     ]
   },
   "packageFolders": {
@@ -2150,6 +2183,10 @@
           "Newtonsoft.Json": {
             "target": "Package",
             "version": "[12.0.3-beta1, )"
+          },
+          "SmartFormat.NET": {
+            "target": "Package",
+            "version": "[2.4.2, )"
           }
         },
         "imports": [

@@ -21,7 +21,7 @@ namespace DirtBot.Services
 
         public async Task MessageReceivedAsync(SocketMessage arg)
         {
-            if (ServiceHelper.IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 
             // Just a quick log...
             Console.WriteLine($"Message from {message.Author}: {message.Content}");
@@ -43,7 +43,7 @@ namespace DirtBot.Services
             if (result.IsSuccess)
                 return;
 
-            await context.Channel.SendMessageAsync($"error: {result}");
+            await SendMessageIfAllowed($"error: {result}", context.Channel);
         }
     }
 }
