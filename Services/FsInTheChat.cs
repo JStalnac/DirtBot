@@ -19,12 +19,12 @@ namespace DirtBot.Services
 
         public async Task MessageReviecedAsync(SocketMessage arg)
         {
-            if (ServiceHelper.IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.Id == discord.CurrentUser.Id) return; // Don't respond to ourselves! That will make a bloooody mess!
 
             if (message.Content.ToLower() == "f" || message.Content.ToLower() == "f ")
             {
-                if (ServiceHelper.IsDMChannel(message.Channel)) 
+                if (IsDMChannel(message.Channel))
                 { 
                     await message.Channel.SendMessageAsync("F");
                     return;
