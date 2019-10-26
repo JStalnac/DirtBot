@@ -3,4 +3,3 @@
 config.json
 bin/*
 obj/*
-*.pdb
