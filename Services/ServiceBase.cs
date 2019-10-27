@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using DirtBot.Caching;
-using System.Net;
 
 namespace DirtBot.Services
 {
@@ -49,13 +50,23 @@ namespace DirtBot.Services
 
         #region String utils
         /// <summary>
-        /// Chooses a random string from an array.
+        /// Chooses a random string from an array or a list.
         /// </summary>
         /// <param name="array"></param>
         /// <returns></returns>
         public string ChooseRandomString(string[] array)
         {
             return array[new Random().Next(0, array.Length)];
+        }
+
+        /// <summary>
+        /// Chooses a random string from an array or a list.
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public string ChooseRandomString(List<string> list)
+        {
+            return list[new Random().Next(0, list.Count)];
         }
 
         public string Capitalize(string value)
@@ -102,7 +113,7 @@ namespace DirtBot.Services
         public async Task<SendResult> SendMessageIfAllowed(string message, IMessageChannel channel)
         {
             // Check if the message is null. You cannot send empty messages.
-            if (String.IsNullOrWhiteSpace(message)) return SendResult.Invalid;
+            if (string.IsNullOrWhiteSpace(message)) return SendResult.Invalid;
 
             try
             {
