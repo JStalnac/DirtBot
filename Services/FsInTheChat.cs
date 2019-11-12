@@ -17,7 +17,7 @@ namespace DirtBot.Services
             discord.MessageReceived += MessageReviecedAsync;
         }
 
-        public async Task MessageReviecedAsync(SocketMessage arg)
+        async Task MessageReviecedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.Id == discord.CurrentUser.Id) return; // Don't respond to ourselves! That will make a bloooody mess!

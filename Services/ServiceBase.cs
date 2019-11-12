@@ -54,7 +54,7 @@ namespace DirtBot.Services
         /// </summary>
         /// <param name="array"></param>
         /// <returns></returns>
-        public string ChooseRandomString(string[] array)
+        protected string ChooseRandomString(string[] array)
         {
             return array[new Random().Next(0, array.Length)];
         }
@@ -64,12 +64,12 @@ namespace DirtBot.Services
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
-        public string ChooseRandomString(List<string> list)
+        protected string ChooseRandomString(List<string> list)
         {
             return list[new Random().Next(0, list.Count)];
         }
 
-        public string Capitalize(string value)
+        protected string Capitalize(string value)
         {
             if (string.IsNullOrEmpty(value)) return string.Empty;
             return char.ToUpper(value[0]) + value.Substring(1);
@@ -83,7 +83,7 @@ namespace DirtBot.Services
         /// <param name="message"></param>
         /// <param name="channel"></param>
         /// <returns></returns>
-        public async Task<SendResult> SendMessageIfAllowed(string message, ISocketMessageChannel channel)
+        protected async Task<SendResult> SendMessageIfAllowed(string message, ISocketMessageChannel channel)
         {
             // Check if the message is null. You cannot send empty messages.
             if (String.IsNullOrWhiteSpace(message)) return SendResult.Invalid;
@@ -110,7 +110,7 @@ namespace DirtBot.Services
             }
         }
 
-        public async Task<SendResult> SendMessageIfAllowed(string message, IMessageChannel channel)
+        protected async Task<SendResult> SendMessageIfAllowed(string message, IMessageChannel channel)
         {
             // Check if the message is null. You cannot send empty messages.
             if (string.IsNullOrWhiteSpace(message)) return SendResult.Invalid;
@@ -137,7 +137,7 @@ namespace DirtBot.Services
             }
         }
 
-        public async Task<SendResult> AddReactionIfAllowed(Emote emote, SocketUserMessage message)
+        protected async Task<SendResult> AddReactionIfAllowed(Emote emote, SocketUserMessage message)
         {
             try
             {
@@ -163,14 +163,13 @@ namespace DirtBot.Services
         }
         #endregion
 
-
         #region Message origin utils
         /// <summary>
         /// Returns true if the channel is a DM Channel.
         /// </summary>
         /// <param name="channel"></param>
         /// <returns></returns>
-        public bool IsDMChannel(ISocketMessageChannel channel)
+        protected bool IsDMChannel(ISocketMessageChannel channel)
         {
             SocketGuildChannel guildChannel = channel as SocketGuildChannel;
             if (guildChannel is null) return true; // Conversion test
@@ -194,7 +193,7 @@ namespace DirtBot.Services
         /// <param name="message"></param>
         /// <param name="userMessage"></param>
         /// <returns></returns>
-        public bool IsSystemMessage(SocketMessage message, out SocketUserMessage userMessage)
+        protected bool IsSystemMessage(SocketMessage message, out SocketUserMessage userMessage)
         {
             SocketUserMessage msg = message as SocketUserMessage;
             if (msg is null)
@@ -215,7 +214,7 @@ namespace DirtBot.Services
         /// <param name="message"></param>
         /// <param name="userMessage"></param>
         /// <returns></returns>
-        public bool IsBotMessage(SocketMessage message, out SocketUserMessage userMessage)
+        protected bool IsBotMessage(SocketMessage message, out SocketUserMessage userMessage)
         {
             SocketUserMessage msg = message as SocketUserMessage;
             if (msg is null)

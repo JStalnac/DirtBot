@@ -12,7 +12,7 @@ namespace DirtBot.Services
             discord.MessageReceived += MessageReceivedAsync;
         }
 
-        public async Task MessageReceivedAsync(SocketMessage arg)
+        async Task MessageReceivedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.IsBot || message.Author == discord.CurrentUser) return;

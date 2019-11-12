@@ -24,7 +24,7 @@ namespace DirtBot.Services
             discord.MessageReceived += MessageRevievedAsync;
         }
 
-        public async Task MessageRevievedAsync(SocketMessage arg)
+        async Task MessageRevievedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             if (message.Author.Id == discord.CurrentUser.Id) return;

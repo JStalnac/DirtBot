@@ -18,7 +18,7 @@ namespace DirtBot.Services
             discord.MessageReceived += MessageRecievedAsync;
         }
 
-        public async Task MessageRecievedAsync(SocketMessage arg)
+        async Task MessageRecievedAsync(SocketMessage arg)
         {
             // Filter system messages and stop executing if the author is this bot.
             if (IsBotMessage(arg, out SocketUserMessage message)) return;

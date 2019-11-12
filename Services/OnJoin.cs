@@ -15,7 +15,7 @@ namespace DirtBot.Services
             discord.GuildAvailable += GuildAvailableAsync;
         }
 
-        public async Task GuildAvailableAsync(SocketGuild arg)
+        async Task GuildAvailableAsync(SocketGuild arg)
         {
             Console.WriteLine($"Guild available: {arg.Name} ({arg.Id})");
         }

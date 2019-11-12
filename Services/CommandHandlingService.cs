@@ -19,7 +19,7 @@ namespace DirtBot.Services
             discord.MessageReceived += MessageReceivedAsync;
         }
 
-        public async Task MessageReceivedAsync(SocketMessage arg)
+        async Task MessageReceivedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 
@@ -35,7 +35,7 @@ namespace DirtBot.Services
             await commands.ExecuteAsync(context, argPos, services);
         }
 
-        public async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
             if (!command.IsSpecified)
                 return;

@@ -18,7 +18,7 @@ namespace DirtBot.Services
             this.responses = responses;
         }
 
-        public async Task MessageRecievedAsync(SocketMessage arg)
+        async Task MessageRecievedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 

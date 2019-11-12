@@ -25,7 +25,7 @@ namespace DirtBot.Services
             this.responses = responses;
         }
 
-        public async Task MessageRevievedAsync(SocketMessage arg)
+        async Task MessageRevievedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
             bool mentioned = false;

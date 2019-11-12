@@ -13,7 +13,7 @@ namespace DirtBot
 {
     class DirtBot
     {
-        public async Task StartAsync()
+        internal async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
