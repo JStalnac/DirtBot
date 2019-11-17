@@ -1,6 +1,9 @@
+# IDE files
 .vs/
+.vscode/
 .git/
+# Config files
 config.json
+# Builds
 bin/
 obj/
-.vscode/
