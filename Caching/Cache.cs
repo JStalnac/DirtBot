@@ -2,12 +2,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using DirtBot.Logging;
 
 namespace DirtBot.Caching
 {
     public class Cache
     {
         List<CacheSave> caches = new List<CacheSave>();
+        Logger Logger;
+
+        public Cache()
+        {
+            Logger = Logger.GetLogger(this);
+        }
 
         public List<CacheSave> Caches 
         {
@@ -54,7 +61,7 @@ namespace DirtBot.Caching
                 if (item.Id == save.Id) return;
             }
             caches.Add(save);
-            Console.WriteLine($"{save.Name} has been added to cache!");
+            await Logger.InfoAsync($"{save.Name} has been added to cache!");
         }
 
         /// <summary>
@@ -69,7 +76,7 @@ namespace DirtBot.Caching
                 if (cacheSave.Id == id)
                 {
                     caches.Remove(cacheSave);
-                    Console.WriteLine($"{cacheSave.Name} has been removed from cache!");
+                    await Logger.InfoAsync($"{cacheSave.Name} has been removed from cache!");
                     return;
                 }
             }
@@ -82,7 +89,7 @@ namespace DirtBot.Caching
                 if (cacheSave.Id == id.ToString()) 
                 {
                     caches.Remove(cacheSave);
-                    Console.WriteLine($"{cacheSave.Name} has been removed from cache!");
+                    await Logger.InfoAsync($"{cacheSave.Name} has been removed from cache!");
                     return;
                 }
             }

@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using DirtBot.Caching;
+using DirtBot.Logging;
 
 namespace DirtBot.Services
 {
@@ -22,6 +23,7 @@ namespace DirtBot.Services
         protected IServiceProvider services;
         protected Cache cache;
         protected Emojis emojis;
+        protected Logger logger;
 
         public enum SendResult
         {
@@ -43,6 +45,7 @@ namespace DirtBot.Services
             cache = services.GetRequiredService<Cache>();
             emojis = services.GetRequiredService<Emojis>();
             this.services = services;
+            logger = Logger.GetLogger(this);
 
             // Adding the service.
             commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
@@ -104,7 +107,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    Console.WriteLine($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -131,7 +134,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    Console.WriteLine($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -156,7 +159,7 @@ namespace DirtBot.Services
                 }
                 else
                 {
-                    Console.WriteLine($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await logger.ErrorAsync($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }

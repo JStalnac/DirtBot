@@ -6,9 +6,10 @@ using SmartFormat;
 
 namespace DirtBot.Logging
 {
-
-    internal class Logger
+    public class Logger
     {
+        // Basicly a copy from Discord.Net lol
+
         string source;
         LogSeverity logSeverity;
 

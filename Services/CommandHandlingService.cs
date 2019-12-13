@@ -24,7 +24,7 @@ namespace DirtBot.Services
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 
             // Just a quick log...
-            Console.WriteLine($"Message from {message.Author}: {message.Content}");
+            await logger.VerboseAsync($"Message from {message.Author}: {message.Content}");
 
             if (message.Source != MessageSource.User) return;
 

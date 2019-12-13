@@ -4,11 +4,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using DirtBot.Logging;
 
 namespace DirtBot.Caching
 {
     class CacheThread
     {
+        static Logger Logger;
         Config config;
         Cache cache;
         IServiceProvider services;
@@ -21,7 +23,7 @@ namespace DirtBot.Caching
         {
             if (services is null)
             {
-                Log("Services do not exist!");
+                Console.WriteLine("Cache: Services do not exist!");
                 Environment.Exit(1);
             }
 
@@ -34,11 +36,12 @@ namespace DirtBot.Caching
             this.services = services;
             config = services.GetRequiredService<Config>();
             cache = services.GetRequiredService<Cache>();
+            Logger = Logger.GetLogger(this);
         }
 
         private async Task StartCacheAsync() 
         {
-            Log("Cache starting!");
+            await Logger.InfoAsync("Cache starting!");
             while (true) 
             {
                 Thread.Sleep(config.CacheUpdateInterval);
@@ -60,11 +63,6 @@ namespace DirtBot.Caching
                     return;
                 }
             }
-        }
-
-        public static void Log(string message)
-        {
-            Console.WriteLine($"Cache:      {message}");
         }
     }
 }

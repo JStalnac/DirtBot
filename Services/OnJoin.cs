@@ -17,7 +17,7 @@ namespace DirtBot.Services
 
         async Task GuildAvailableAsync(SocketGuild arg)
         {
-            Console.WriteLine($"Guild available: {arg.Name} ({arg.Id})");
+            await logger.InfoAsync($"Guild available: {arg.Name} ({arg.Id})");
         }
     }
 }
