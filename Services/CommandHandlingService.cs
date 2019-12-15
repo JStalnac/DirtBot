@@ -29,7 +29,7 @@ namespace DirtBot.Services
             if (message.Source != MessageSource.User) return;
 
             var argPos = 0;
-            if (!message.HasStringPrefix(config.Prefix, ref argPos)) return;
+            if (!message.HasStringPrefix(config.prefix, ref argPos)) return;
 
             var context = new SocketCommandContext(discord, message);
             await commands.ExecuteAsync(context, argPos, services);

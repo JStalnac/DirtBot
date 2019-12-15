@@ -33,7 +33,7 @@ namespace DirtBot
                 thread.Start(services);
 
                 // Login
-                await client.LoginAsync(TokenType.Bot, config.Token);
+                await client.LoginAsync(TokenType.Bot, config.token);
                 await client.StartAsync();
 
                 // Emojis
@@ -71,7 +71,7 @@ namespace DirtBot
                 .AddSingleton<CacheThread>()
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
-                .AddSingleton<Config>()
+                .AddSingleton<Config>(Config.LoadConfig())
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()

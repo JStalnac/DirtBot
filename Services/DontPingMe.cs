@@ -19,9 +19,9 @@ namespace DirtBot.Services
             InitializeService(services);
             discord.MessageReceived += MessageRevievedAsync;
 
-            string[] responses = { /*"Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
+            string[] responses = { "Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
             "Miksi aina tägäät {Username}?", "Olisko kivaa jos mä tägäisin sut?", "{Mention}", "Lopeta! 😡",
-            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", */$"{emojis.DirtDontPingMe}" };
+            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", $"{emojis.DirtDontPingMe}" };
             this.responses = responses;
         }
 
