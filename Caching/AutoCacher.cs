@@ -10,7 +10,7 @@ namespace DirtBot.Caching
         public AutoCacher(IServiceProvider services)
         {
             InitializeService(services);
-            discord.MessageReceived += MessageRecievedAsync;
+            Discord.MessageReceived += MessageRecievedAsync;
         }
 
         public async Task MessageRecievedAsync(SocketMessage arg)
@@ -29,7 +29,7 @@ namespace DirtBot.Caching
 
             // Add to cache
             CacheSave cacheSave = new CacheSave(socketGuildChannel.Guild.Id, socketGuildChannel.Guild.Name);
-            await cache.AddToCacheAsync(cacheSave);
+            await Cache.AddToCacheAsync(cacheSave);
         }
     }
 }

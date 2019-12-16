@@ -13,13 +13,13 @@ namespace DirtBot.Services
         {
             InitializeService(services);
             cacheFallBackObject = new FsInTheChatDataObject("F_COUNT");
-            discord.MessageReceived += MessageReviecedAsync;
+            Discord.MessageReceived += MessageReviecedAsync;
         }
 
         async Task MessageReviecedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
-            if (message.Author.Id == discord.CurrentUser.Id) return; // Don't respond to ourselves! That will make a bloooody mess!
+            if (message.Author.Id == Discord.CurrentUser.Id) return; // Don't respond to ourselves! That will make a bloooody mess!
 
             if (message.Content.ToLower() == "f" || message.Content.ToLower() == "f ")
             {
@@ -29,7 +29,7 @@ namespace DirtBot.Services
                     return;
                 }
 
-                CacheSave cacheSave = await cache.GetFromCacheAsync(arg);
+                CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
                 if (cacheSave is null) return;
 
                 FsInTheChatDataObject obj = (await cacheSave.GetFromDataUnderKeyAsync("FsInTheChat", "F_COUNT", cacheFallBackObject)) as FsInTheChatDataObject;

@@ -17,11 +17,11 @@ namespace DirtBot.Services
         public DontPingMe(IServiceProvider services)
         {
             InitializeService(services);
-            discord.MessageReceived += MessageRevievedAsync;
+            Discord.MessageReceived += MessageRevievedAsync;
 
             string[] responses = { "Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
             "Miksi aina tägäät {Username}?", "Olisko kivaa jos mä tägäisin sut?", "{Mention}", "Lopeta! 😡",
-            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", $"{emojis.DirtDontPingMe}" };
+            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", $"{Emojis.DirtDontPingMe}" };
             this.responses = responses;
         }
 
@@ -35,7 +35,7 @@ namespace DirtBot.Services
                 switch (tag.Type)
                 {
                     case TagType.UserMention:
-                        if (tag.Key == discord.CurrentUser.Id && !mentioned)
+                        if (tag.Key == Discord.CurrentUser.Id && !mentioned)
                         {
                             mentioned = true;
                             await SendAngryMessage(message);
@@ -67,7 +67,7 @@ namespace DirtBot.Services
             {
                 RestUserMessage restMessage = await message.Channel.SendMessageAsync(response);
 
-                if (!restMessage.Content.Contains("<:" + emojis.DirtDontPingMe.Name + ":"))
+                if (!restMessage.Content.Contains("<:" + Emojis.DirtDontPingMe.Name + ":"))
                 {
                     await SendMessageIfAllowed(ChooseRandomString(cantUseEmojis), message.Channel);
                 }
@@ -79,7 +79,7 @@ namespace DirtBot.Services
                 // Cannot send messages, doesn't matter
                 if (e.DiscordCode == 50013) { }
             }
-            await AddReactionIfAllowed(emojis.DirtDontPingMe, message);
+            await AddReactionIfAllowed(Emojis.DirtDontPingMe, message);
         }
     }
 }

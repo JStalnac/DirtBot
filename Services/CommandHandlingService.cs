@@ -15,8 +15,8 @@ namespace DirtBot.Services
         public CommandHandlingService(IServiceProvider services)
         {
             InitializeService(services);
-            commands.CommandExecuted += CommandExecutedAsync;
-            discord.MessageReceived += MessageReceivedAsync;
+            Commands.CommandExecuted += CommandExecutedAsync;
+            Discord.MessageReceived += MessageReceivedAsync;
         }
 
         async Task MessageReceivedAsync(SocketMessage arg)
@@ -24,15 +24,15 @@ namespace DirtBot.Services
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 
             // Just a quick log...
-            await logger.VerboseAsync($"Message from {message.Author}: {message.Content}");
-
+            await Logger.VerboseAsync($"Message from {message.Author}: {message.Content}");
+            
             if (message.Source != MessageSource.User) return;
 
             var argPos = 0;
-            if (!message.HasStringPrefix(config.prefix, ref argPos)) return;
+            if (!message.HasStringPrefix(Config.Prefix, ref argPos)) return;
 
-            var context = new SocketCommandContext(discord, message);
-            await commands.ExecuteAsync(context, argPos, services);
+            var context = new SocketCommandContext(Discord, message);
+            await Commands.ExecuteAsync(context, argPos, Services);
         }
 
         async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)

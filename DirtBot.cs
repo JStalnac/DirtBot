@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using Discord.Commands;
 using DirtBot.Services;
 using DirtBot.Caching;
+using MySql.Data.MySqlClient;
 
 namespace DirtBot
 {
@@ -22,7 +23,6 @@ namespace DirtBot
                 // Internal
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-                Config config = services.GetRequiredService<Config>();
 
                 // Cache
                 services.GetRequiredService<Cache>();
@@ -33,7 +33,7 @@ namespace DirtBot
                 thread.Start(services);
 
                 // Login
-                await client.LoginAsync(TokenType.Bot, config.token);
+                await client.LoginAsync(TokenType.Bot, Config.Token);
                 await client.StartAsync();
 
                 // Emojis
@@ -71,7 +71,7 @@ namespace DirtBot
                 .AddSingleton<CacheThread>()
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
-                .AddSingleton<Config>(Config.LoadConfig())
+                .AddSingleton<MySqlConnection>()
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()

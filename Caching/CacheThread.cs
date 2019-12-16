@@ -44,7 +44,7 @@ namespace DirtBot.Caching
             await Logger.InfoAsync("Cache starting!");
             while (true) 
             {
-                Thread.Sleep(config.cacheUpdateInterval);
+                Thread.Sleep(Config.CacheUpdateInterval);
                 await CacheUpdate();
             }
         }

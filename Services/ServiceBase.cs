@@ -17,13 +17,15 @@ namespace DirtBot.Services
     /// </summary>
     public class ServiceBase
     {
-        protected CommandService commands;
-        protected DiscordSocketClient discord;
-        protected Config config;
-        protected IServiceProvider services;
-        protected Cache cache;
-        protected Emojis emojis;
-        protected Logger logger;
+        protected CommandService Commands;
+        protected DiscordSocketClient Discord;
+        protected IServiceProvider Services;
+        protected Emojis Emojis;
+        private Cache cache;
+        private Logger logger;
+
+        protected Logger Logger { get => logger; }
+        protected Cache Cache { get => cache;  }
 
         public enum SendResult
         {
@@ -39,16 +41,15 @@ namespace DirtBot.Services
         /// <param name="services"></param>
         protected void InitializeService(IServiceProvider services)
         {
-            commands = services.GetRequiredService<CommandService>();
-            discord = services.GetRequiredService<DiscordSocketClient>();
-            config = services.GetRequiredService<Config>();
+            Commands = services.GetRequiredService<CommandService>();
+            Discord = services.GetRequiredService<DiscordSocketClient>();
             cache = services.GetRequiredService<Cache>();
-            emojis = services.GetRequiredService<Emojis>();
-            this.services = services;
+            Emojis = services.GetRequiredService<Emojis>();
+            Services = services;
             logger = Logger.GetLogger(this);
 
             // Adding the service.
-            commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
+            Commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
         }
 
         #region String utils
@@ -107,7 +108,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    await logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await Logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -134,7 +135,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    await logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await Logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -159,7 +160,7 @@ namespace DirtBot.Services
                 }
                 else
                 {
-                    await logger.ErrorAsync($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    await Logger.ErrorAsync($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }

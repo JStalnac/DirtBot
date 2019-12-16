@@ -15,7 +15,7 @@ namespace DirtBot.Services
         public Scares(IServiceProvider services)
         {
             InitializeService(services);
-            discord.MessageReceived += MessageRecievedAsync;
+            Discord.MessageReceived += MessageRecievedAsync;
         }
 
         async Task MessageRecievedAsync(SocketMessage arg)

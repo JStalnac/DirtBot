@@ -8,22 +8,35 @@ namespace DirtBot
     /// <summary>
     /// Bot configuration
     /// </summary>
-    public class Config
+    public struct Config
     {
+#pragma warning disable IDE0044 // Add readonly modifier
         [JsonProperty]
-        public string token;
+        private static string token;
         [JsonProperty]
-        public string ownerId;
+        private static string ownerId;
         [JsonProperty]
-        public string prefix;
+        private static string prefix;
         [JsonProperty]
-        public int cacheUpdateInterval = 20000;
+        private static int cacheUpdateInterval = 20000;
         [JsonProperty]
-        public string databaseUsername;
+        private static string databaseUsername;
         [JsonProperty]
-        public string databasePassword;
+        private static string databasePassword;
+#pragma warning restore IDE0044 // Add readonly modifier
+        public static string Token { get => token; }
+        public static string OwnerId { get => ownerId; }
+        public static string Prefix { get => prefix; }
+        public static int CacheUpdateInterval { get => cacheUpdateInterval; }
+        public static string DatabaseUsername { get => databaseUsername; }
+        public static string DatabasePassword { get => databasePassword; }
 
-        public static Config LoadConfig()
+        static Config()
+        {
+            new Config().Load();
+        }
+
+        void Load() 
         {
             try
             {
@@ -32,27 +45,15 @@ namespace DirtBot
                     Console.WriteLine("config.json not found! Restoring default config!");
                     File.WriteAllText("config.json", JsonConvert.SerializeObject(new Config(), Formatting.Indented));
                     Environment.Exit(1);
-                    return new Config();
                 }
 
                 string json = File.ReadAllText("config.json");
-                Config config = JsonConvert.DeserializeObject<Config>(json);
-
-                if (config is null) 
-                {
-                    Console.WriteLine("Failed to read config.json! Restoring deafult config!");
-                    File.WriteAllText("config.json", JsonConvert.SerializeObject(new Config(), Formatting.Indented));
-                    Environment.Exit(1);
-                    return new Config();
-                }
-
-                return config;
+                this = JsonConvert.DeserializeObject<Config>(json);
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Unable to read config.json! Error: {e.Message}");
                 Environment.Exit(1);
-                return new Config();
             }
         }
     }

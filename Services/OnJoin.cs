@@ -12,12 +12,12 @@ namespace DirtBot.Services
         public OnJoin(IServiceProvider services)
         {
             InitializeService(services);
-            discord.GuildAvailable += GuildAvailableAsync;
+            Discord.GuildAvailable += GuildAvailableAsync;
         }
 
         async Task GuildAvailableAsync(SocketGuild arg)
         {
-            await logger.InfoAsync($"Guild available: {arg.Name} ({arg.Id})");
+            await Logger.InfoAsync($"Guild available: {arg.Name} ({arg.Id})");
         }
     }
 }

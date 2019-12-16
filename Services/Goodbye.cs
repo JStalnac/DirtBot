@@ -19,13 +19,13 @@ namespace DirtBot.Services
         {
             InitializeService(services);
             cacheFallBackObject = new GreetingSharedDataObject("BYES");
-            discord.MessageReceived += MessageRevievedAsync;
+            Discord.MessageReceived += MessageRevievedAsync;
         }
 
         async Task MessageRevievedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
-            if (message.Author.Id == discord.CurrentUser.Id) return;
+            if (message.Author.Id == Discord.CurrentUser.Id) return;
 
             foreach (string str in messages)
             {
@@ -37,7 +37,7 @@ namespace DirtBot.Services
                         await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
                     }
 
-                    CacheSave cacheSave = await cache.GetFromCacheAsync(arg);
+                    CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
                     if (cacheSave is null) return;
 
                     GreetingSharedDataObject dataObject = await cacheSave.GetFromDataUnderKeyAsync("Greets", "BYES", cacheFallBackObject) as GreetingSharedDataObject;

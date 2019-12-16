@@ -1,5 +1,4 @@
-﻿
-namespace DirtBot
+﻿namespace DirtBot
 {
     class Program
     {
