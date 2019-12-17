@@ -11,7 +11,6 @@ namespace DirtBot.Caching
     class CacheThread
     {
         static Logger Logger;
-        Config config;
         Cache cache;
         IServiceProvider services;
 
@@ -34,7 +33,6 @@ namespace DirtBot.Caching
         public CacheThread(IServiceProvider services) 
         {
             this.services = services;
-            config = services.GetRequiredService<Config>();
             cache = services.GetRequiredService<Cache>();
             Logger = Logger.GetLogger(this);
         }
@@ -42,6 +40,8 @@ namespace DirtBot.Caching
         private async Task StartCacheAsync() 
         {
             await Logger.InfoAsync("Cache starting!");
+            await Logger.DebugAsync($"Current update interval: {Config.CacheUpdateInterval}");
+
             while (true) 
             {
                 Thread.Sleep(Config.CacheUpdateInterval);

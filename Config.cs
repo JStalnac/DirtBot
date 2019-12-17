@@ -11,23 +11,30 @@ namespace DirtBot
     public struct Config
     {
 #pragma warning disable IDE0044 // Add readonly modifier
-        [JsonProperty]
-        private static string token;
-        [JsonProperty]
-        private static string ownerId;
-        [JsonProperty]
-        private static string prefix;
-        [JsonProperty]
+        [JsonProperty(Required = Required.AllowNull)]
+        private static string token = "";
+        [JsonProperty(Required = Required.AllowNull)]
+        private static string ownerId = "";
+        [JsonProperty(Required = Required.Always)]
+        private static string prefix = "";
+        [JsonProperty(Required = Required.Always)]
         private static int cacheUpdateInterval = 20000;
-        [JsonProperty]
-        private static string databaseUsername;
-        [JsonProperty]
-        private static string databasePassword;
+        [JsonProperty(Required = Required.Always)]
+        private static string databaseAddress = "localhost";
+        [JsonProperty(Required = Required.Always)]
+        private static string databaseName = "database1234";
+        [JsonProperty(Required = Required.Always)]
+        private static string databaseUsername = "myUsername123";
+        [JsonProperty(Required = Required.Always)]
+        private static string databasePassword = "thisisaverybadpassword123";
 #pragma warning restore IDE0044 // Add readonly modifier
+        
         public static string Token { get => token; }
         public static string OwnerId { get => ownerId; }
         public static string Prefix { get => prefix; }
         public static int CacheUpdateInterval { get => cacheUpdateInterval; }
+        public static string DatabaseAddress { get { return databaseAddress; } }
+        public static string DatabaseName { get { return databaseName; } }
         public static string DatabaseUsername { get => databaseUsername; }
         public static string DatabasePassword { get => databasePassword; }
 
@@ -52,7 +59,11 @@ namespace DirtBot
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Unable to read config.json! Error: {e.Message}");
+                StreamWriter writer = new StreamWriter("config.example.json");
+                writer.WriteLine(JsonConvert.SerializeObject(new Config(), Formatting.Indented));
+                writer.Close();
+
+                Console.WriteLine($"Unable to read config.json! Error: {e.Message}\nPlease go check it from the application root! An example config has been generated!");
                 Environment.Exit(1);
             }
         }
