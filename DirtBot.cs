@@ -32,6 +32,17 @@ namespace DirtBot
                 Thread thread = new Thread(CacheThread.InitiazeCacheThread);
                 thread.Start(services);
 
+                // Database connection check
+                try
+                {
+                    services.GetRequiredService<MySqlConnection>().Open();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Database connection failed: {e.Message}");
+                    Environment.Exit(-1);
+                }
+
                 // Login
                 await client.LoginAsync(TokenType.Bot, Config.Token);
                 await client.StartAsync();
@@ -71,7 +82,8 @@ namespace DirtBot
                 .AddSingleton<CacheThread>()
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
-                .AddSingleton<MySqlConnection>()
+                .AddSingleton(new MySqlConnection(
+                    $"Server={Config.DatabaseAddress};Database={Config.DatabaseName};Uid={Config.DatabaseUsername};Pwd={Config.DatabasePassword};")) // Creating the MySql connection here
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()
