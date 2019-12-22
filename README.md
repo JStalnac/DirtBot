@@ -1,2 +1,2 @@
 # DirtBot
- The unfinished source code for DirtBot
+ The finished source code for DirtBot without the database.
