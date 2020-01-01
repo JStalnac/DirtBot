@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Discord;
@@ -67,8 +67,9 @@ namespace DirtBot.Services
             {
                 RestUserMessage restMessage = await message.Channel.SendMessageAsync(response);
 
-                if (!restMessage.Content.Contains("<:" + Emojis.DirtDontPingMe.Name + ":"))
+                if (!restMessage.Content.Contains("<:" + Emojis.DirtDontPingMe.Name + ":") && response.Contains(Emojis.DirtDontPingMe.ToString()))
                 {
+                    await restMessage.DeleteAsync();
                     await SendMessageIfAllowed(ChooseRandomString(cantUseEmojis), message.Channel);
                 }
             }
