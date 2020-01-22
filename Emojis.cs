@@ -13,6 +13,7 @@ namespace DirtBot
         public Emojis()
         {
             AddEmoji("<:dirtdontpingme:634748801617231892>");
+            AddEmoji("<:dirtblobhyperhyper:661269834805542933>");
         }
 
         public void AddEmoji(string id) 
@@ -33,9 +34,8 @@ namespace DirtBot
             }
         }
 
-        public Emote DirtDontPingMe 
-        {
-            get { return emotes["dirtdontpingme"]; }
-        }
+        public Emote DirtDontPingMe { get => emotes["dirtdontpingme"]; }
+        public Emote DirtBlobHyperHyper { get => emotes["dirtblobhyperhyper"]; }
+        
     }
 }

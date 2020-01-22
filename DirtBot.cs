@@ -3,12 +3,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using MySql.Data.MySqlClient;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using DirtBot.Services;
 using DirtBot.Caching;
-using MySql.Data.MySqlClient;
+using DirtBot.Logging;
 
 namespace DirtBot
 {
@@ -18,6 +19,8 @@ namespace DirtBot
         {
             using (var services = ConfigureServices())
             {
+                Logger Logger = Logger.GetLogger(this);
+
                 var client = services.GetRequiredService<DiscordSocketClient>();
 
                 // Internal
@@ -36,6 +39,7 @@ namespace DirtBot
                 try
                 {
                     services.GetRequiredService<MySqlConnection>().Open();
+                    await Logger.InfoAsync("Database started!");
                 }
                 catch (Exception e)
                 {
@@ -46,6 +50,8 @@ namespace DirtBot
                 // Login
                 await client.LoginAsync(TokenType.Bot, Config.Token);
                 await client.StartAsync();
+
+                //client.GetGuild(600592035174416384);
 
                 // Emojis
                 Emojis emojis = services.GetRequiredService<Emojis>();
