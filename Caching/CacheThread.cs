@@ -44,24 +44,19 @@ namespace DirtBot.Caching
 
             while (true) 
             {
-                Thread.Sleep(Config.CacheUpdateInterval);
-                await CacheUpdate();
-            }
-        }
+                DateTime currentTime = DateTime.Now;
 
-        private async Task CacheUpdate()
-        {
-            DateTime currentTime = DateTime.Now;
-
-            foreach (CacheSave cacheSave in cache.Caches)
-            {
-                TimeSpan timeDifference = currentTime - cacheSave.CreationTime;
-
-                if (timeDifference.TotalSeconds > cacheSave.RemoveAfter)
+                foreach (CacheSave cacheSave in cache.Caches)
                 {
-                    await cache.RemoveFromCacheAsync(cacheSave.Id);
-                    return;
+                    TimeSpan timeDifference = currentTime - cacheSave.CreationTime;
+
+                    if (timeDifference.TotalSeconds > cacheSave.RemoveAfter)
+                    {
+                        await cache.RemoveFromCacheAsync(cacheSave.Id);
+                        continue;
+                    }
                 }
+                Thread.Sleep(Config.CacheUpdateInterval);
             }
         }
     }
