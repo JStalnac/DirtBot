@@ -1,42 +1,25 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using System.IO;
 
 namespace DirtBot
 {
-    /// <summary>
-    /// Bot configuration
-    /// </summary>
     public struct Config
     {
-#pragma warning disable IDE0044 // Add readonly modifier
         [JsonProperty(Required = Required.AllowNull)]
-        private static string token = "";
+        public static string Token { get; private set; } = "";
         [JsonProperty(Required = Required.AllowNull)]
-        private static string ownerId = "";
+        public static string OwnerId { get; private set; } = "";
         [JsonProperty(Required = Required.Always)]
-        private static string prefix = "";
+        public static string Prefix { get; private set; } = "";
         [JsonProperty(Required = Required.Always)]
-        private static int cacheUpdateInterval = 20000;
+        public static int CacheUpdateInterval { get; private set; } = 20000;
         [JsonProperty(Required = Required.Always)]
-        private static string databaseAddress = "localhost";
-        [JsonProperty(Required = Required.Always)]
-        private static string databaseName = "database1234";
-        [JsonProperty(Required = Required.Always)]
-        private static string databaseUsername = "myUsername123";
-        [JsonProperty(Required = Required.Always)]
-        private static string databasePassword = "thisisaverybadpassword123";
-#pragma warning restore IDE0044 // Add readonly modifier
-        
-        public static string Token { get => token; }
-        public static string OwnerId { get => ownerId; }
-        public static string Prefix { get => prefix; }
-        public static int CacheUpdateInterval { get => cacheUpdateInterval; }
-        public static string DatabaseAddress { get { return databaseAddress; } }
-        public static string DatabaseName { get { return databaseName; } }
-        public static string DatabaseUsername { get => databaseUsername; }
-        public static string DatabasePassword { get => databasePassword; }
+        public static bool LogTraces { get; private set; } = true;
+
+        [JsonProperty]
+        public static List<Emoji> Emotes { get; private set; } = new List<Emoji>();
 
         static Config()
         {

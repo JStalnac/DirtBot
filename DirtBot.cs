@@ -1,15 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using MySql.Data.MySqlClient;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using DirtBot.Services;
 using DirtBot.Caching;
 using DirtBot.Logging;
+using DirtBot.DataBase.FileManagement;
 
 namespace DirtBot
 {
@@ -27,6 +28,10 @@ namespace DirtBot
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
 
+                // DataBase
+                if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
+                FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
+
                 // Cache
                 services.GetRequiredService<Cache>();
                 CacheThread cacheThread = services.GetRequiredService<CacheThread>();
@@ -35,23 +40,9 @@ namespace DirtBot
                 Thread thread = new Thread(CacheThread.InitiazeCacheThread);
                 thread.Start(services);
 
-                // Database connection check
-                try
-                {
-                    services.GetRequiredService<MySqlConnection>().Open();
-                    await Logger.InfoAsync("Database started!");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Database connection failed: {e.Message}");
-                    Environment.Exit(-1);
-                }
-
                 // Login
                 await client.LoginAsync(TokenType.Bot, Config.Token);
                 await client.StartAsync();
-
-                //client.GetGuild(600592035174416384);
 
                 // Emojis
                 Emojis emojis = services.GetRequiredService<Emojis>();
@@ -88,8 +79,6 @@ namespace DirtBot
                 .AddSingleton<CacheThread>()
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
-                .AddSingleton(new MySqlConnection(
-                    $"Server={Config.DatabaseAddress};Database={Config.DatabaseName};Uid={Config.DatabaseUsername};Pwd={Config.DatabasePassword};")) // Creating the MySql connection here
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()

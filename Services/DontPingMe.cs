@@ -17,11 +17,11 @@ namespace DirtBot.Services
         public DontPingMe(IServiceProvider services)
         {
             InitializeService(services);
-            Discord.MessageReceived += MessageRevievedAsync;
+            Client.MessageReceived += MessageRevievedAsync;
 
-            string[] responses = { "Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
+            string[] responses = { /*"Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
             "Miksi aina tägäät {Username}?", "Olisko kivaa jos mä tägäisin sut?", "{Mention}", "Lopeta! 😡",
-            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", $"{Emojis.DirtDontPingMe}" };
+            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", */$"{Emojis.DirtDontPingMe}" };
             this.responses = responses;
         }
 
@@ -35,7 +35,7 @@ namespace DirtBot.Services
                 switch (tag.Type)
                 {
                     case TagType.UserMention:
-                        if (tag.Key == Discord.CurrentUser.Id && !mentioned)
+                        if (tag.Key == Client.CurrentUser.Id && !mentioned)
                         {
                             mentioned = true;
                             await SendAngryMessage(message);
@@ -62,6 +62,7 @@ namespace DirtBot.Services
         private async Task SendAngryMessage(SocketUserMessage message)
         {
             string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
+            await SendMessageIfAllowed("<a:dirtblobhyperhyper:661269834805542933>", message.Channel);
 
             try
             {
