@@ -141,8 +141,15 @@ namespace DirtBot.Services
             }
         }
 
+        protected async Task<SendResult> AddReactionIfAllowed(Emoji emoji, SocketUserMessage message) 
+        {
+            return await AddReactionIfAllowed(Emote.Parse(emoji.ToString()), message);
+        }
+
         protected async Task<SendResult> AddReactionIfAllowed(Emote emote, SocketUserMessage message)
         {
+            if (emote is null) return SendResult.Invalid;
+
             try
             {
                 await message.AddReactionAsync(emote);
