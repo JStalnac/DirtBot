@@ -12,7 +12,7 @@ namespace DirtBot.Services
         public Mwhujöötrö(IServiceProvider services)
         {
             InitializeService(services);
-            Discord.MessageReceived += MessageRecievedAsync;
+            Client.MessageReceived += MessageRecievedAsync;
 
             string[] responses = { "Viimeksi kun söin mwhujöötröä se maistui ihan sokerimössöltä!", "Mwhujöötrö on pahaa!", "Onko mwhujöötrö susta hyvää {Username}?" };
             this.responses = responses;

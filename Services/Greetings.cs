@@ -21,13 +21,13 @@ namespace DirtBot.Services
         {
             InitializeService(services);
             cacheFallBackObject = new GreetingSharedDataObject("BYES");
-            Discord.MessageReceived += MessageRevievedAsync;
+            Client.MessageReceived += MessageRevievedAsync;
         }
 
         async Task MessageRevievedAsync(SocketMessage arg)
         {
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
-            if (message.Author.Id == Discord.CurrentUser.Id) return;
+            if (message.Author.Id == Client.CurrentUser.Id) return;
 
             foreach (string str in messages)
             {

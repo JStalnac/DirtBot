@@ -10,7 +10,7 @@ namespace DirtBot.Caching
         public AutoCacher(IServiceProvider services)
         {
             InitializeService(services);
-            Discord.MessageReceived += MessageRecievedAsync;
+            Client.MessageReceived += MessageRecievedAsync;
         }
 
         public async Task MessageRecievedAsync(SocketMessage arg)

@@ -18,7 +18,7 @@ namespace DirtBot.Services
     public class ServiceBase
     {
         protected CommandService Commands;
-        protected DiscordSocketClient Discord;
+        protected DiscordSocketClient Client;
         protected IServiceProvider Services;
         protected Emojis Emojis;
         private Cache cache;
@@ -42,7 +42,7 @@ namespace DirtBot.Services
         protected void InitializeService(IServiceProvider services)
         {
             Commands = services.GetRequiredService<CommandService>();
-            Discord = services.GetRequiredService<DiscordSocketClient>();
+            Client = services.GetRequiredService<DiscordSocketClient>();
             cache = services.GetRequiredService<Cache>();
             Emojis = services.GetRequiredService<Emojis>();
             Services = services;

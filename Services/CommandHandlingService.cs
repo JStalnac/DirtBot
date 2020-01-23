@@ -16,7 +16,7 @@ namespace DirtBot.Services
         {
             InitializeService(services);
             Commands.CommandExecuted += CommandExecutedAsync;
-            Discord.MessageReceived += MessageReceivedAsync;
+            Client.MessageReceived += MessageReceivedAsync;
         }
 
         async Task MessageReceivedAsync(SocketMessage arg)
@@ -31,7 +31,7 @@ namespace DirtBot.Services
             var argPos = 0;
             if (!message.HasStringPrefix(Config.Prefix, ref argPos)) return;
 
-            var context = new SocketCommandContext(Discord, message);
+            var context = new SocketCommandContext(Client, message);
             await Commands.ExecuteAsync(context, argPos, Services);
         }
 
