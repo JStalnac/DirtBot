@@ -11,8 +11,6 @@ namespace DirtBot.Services
     {
         // Stuff that the bot will respond with.
         string[] responses;
-        string[] cantUseEmojis = { "En saa käyttää omia emojeja :c", "Mä haluan käyttää omia emojejani 😭", "Antakaa mun käyttää omia emojeja!", 
-            "Mä en saa käyttää omia emojeja. :c Älä silti tägää! 😡" };
 
         public DontPingMe(IServiceProvider services)
         {
@@ -21,7 +19,7 @@ namespace DirtBot.Services
 
             string[] responses = { /*"Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
             "Miksi aina tägäät {Username}?", "Olisko kivaa jos mä tägäisin sut?", "{Mention}", "Lopeta! 😡",
-            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", */$"{Emojis.DirtDontPingMe}" };
+            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", */$"{Emojis["dirtdontpingme"]}" };
             this.responses = responses;
         }
 
@@ -61,27 +59,14 @@ namespace DirtBot.Services
 
         private async Task SendAngryMessage(SocketUserMessage message)
         {
-            string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-            await SendMessageIfAllowed("<a:dirtblobhyperhyper:661269834805542933>", message.Channel);
-
-            try
-            {
-                RestUserMessage restMessage = await message.Channel.SendMessageAsync(response);
-
-                if (!restMessage.Content.Contains("<:" + Emojis.DirtDontPingMe.Name + ":") && response.Contains(Emojis.DirtDontPingMe.ToString()))
-                {
-                    await restMessage.DeleteAsync();
-                    await SendMessageIfAllowed(ChooseRandomString(cantUseEmojis), message.Channel);
-                }
-            }
-            catch (Discord.Net.HttpException e)
-            {
-                // Some Discord or permission error happened
-
-                // Cannot send messages, doesn't matter
-                if (e.DiscordCode == 50013) { }
-            }
-            await AddReactionIfAllowed(Emojis.DirtDontPingMe, message);
+            // Send a funny message.
+            string response = "<:dirtdontpingme:661270254521155607>";//Emojis["dirtdontpingme"].ToString();//Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
+            Console.WriteLine(Emojis["dirtdontpingme"]);
+            //await message.Channel.SendMessageAsync(response);
+            await SendMessageIfAllowed(response, message.Channel);
+            // And finish it of with a reaction.
+            await AddReactionIfAllowed(Emojis["dirtdontpingme"], message);
+            // TODO: Fix adding reactions ^
         }
     }
 }

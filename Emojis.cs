@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Discord;
 
 namespace DirtBot
 {
@@ -8,21 +7,22 @@ namespace DirtBot
     /// </summary>
     public class Emojis
     {
-        Dictionary<string, Emote> emotes = new Dictionary<string, Emote>();
+        Dictionary<string, Emoji> emotes = new Dictionary<string, Emoji>();
 
         public Emojis()
         {
-            AddEmoji("<:dirtdontpingme:634748801617231892>");
-            AddEmoji("<:dirtblobhyperhyper:661269834805542933>");
+            foreach (Emoji emoji in Config.Emotes)
+            {
+                if (GetEmoji(emoji.Name) is null) emotes.Add(emoji.Name, emoji);
+            }
         }
 
-        public void AddEmoji(string id) 
+        public Emoji this[string name] 
         {
-            Emote emote = Emote.Parse(id);
-            emotes.Add(emote.Name, emote);
+            get => GetEmoji(name);
         }
 
-        public Emote GetEmote(string name) 
+        public Emoji GetEmoji(string name) 
         {
             try
             {
@@ -34,8 +34,7 @@ namespace DirtBot
             }
         }
 
-        public Emote DirtDontPingMe { get => emotes["dirtdontpingme"]; }
-        public Emote DirtBlobHyperHyper { get => emotes["dirtblobhyperhyper"]; }
-        
+        public Emoji DirtDontPingMe { get => emotes["dirtdontpingme"]; }
+        public Emoji DirtBlobHyperHyper { get => emotes["dirtblobhyperhyper"]; }
     }
 }
