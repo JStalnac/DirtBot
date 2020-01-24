@@ -17,9 +17,9 @@ namespace DirtBot.Services
             InitializeService(services);
             Client.MessageReceived += MessageRevievedAsync;
 
-            string[] responses = { /*"Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
+            string[] responses = { "Älä tägää!!", "Älä tägää 😡", "Onko aina pakko tägätä?", "Ei oo kivaa! 😡", "Mur",
             "Miksi aina tägäät {Username}?", "Olisko kivaa jos mä tägäisin sut?", "{Mention}", "Lopeta! 😡",
-            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", */$"{Emojis["dirtdontpingme"]}" };
+            "Onko tämä kivaa? {Mention} {Mention}", "{Mention} {Mention} {Mention}", $"{Emojis["dirtdontpingme"]}" };
             this.responses = responses;
         }
 
@@ -60,13 +60,11 @@ namespace DirtBot.Services
         private async Task SendAngryMessage(SocketUserMessage message)
         {
             // Send a funny message.
-            string response = "<:dirtdontpingme:661270254521155607>";//Emojis["dirtdontpingme"].ToString();//Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-            Console.WriteLine(Emojis["dirtdontpingme"]);
+            string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
             //await message.Channel.SendMessageAsync(response);
             await SendMessageIfAllowed(response, message.Channel);
             // And finish it of with a reaction.
             await AddReactionIfAllowed(Emojis["dirtdontpingme"], message);
-            // TODO: Fix adding reactions ^
         }
     }
 }
