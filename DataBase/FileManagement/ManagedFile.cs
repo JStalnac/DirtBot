@@ -135,11 +135,21 @@ namespace DirtBot.DataBase.FileManagement
         /// <param name="data">Object that will be written to the file as json.</param>
         public void WriteJsonData(object data) 
         {
+            WriteJsonData(data, Formatting.None);
+        }
+
+        /// <summary>
+        /// Writes the json data of the given object to the file with custom formatting.
+        /// NOTE: Use lock if you are using this multithreaded! It can cause data corruption if multiple threads try to access the file at once!
+        /// </summary>
+        /// <param name="data">Object that will be written to the file as json.</param>
+        public void WriteJsonData(object data, Formatting formatting)
+        {
             lock (locker)
             {
                 using (StreamWriter writer = new StreamWriter(FullName))
                 {
-                    writer.WriteLine(JsonConvert.SerializeObject(data));
+                    writer.WriteLine(JsonConvert.SerializeObject(data, formatting));
                 }
             }
         }
