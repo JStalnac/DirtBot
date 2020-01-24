@@ -10,6 +10,7 @@ using Discord.Commands;
 using DirtBot.Services;
 using DirtBot.Caching;
 using DirtBot.Logging;
+using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
 
 namespace DirtBot
@@ -29,8 +30,13 @@ namespace DirtBot
                 services.GetRequiredService<CommandService>().Log += LogAsync;
 
                 // DataBase
+
+                // Load data folders
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
+
+                // Initialize database
+                services.GetRequiredService<DataBasifier>();
 
                 // Cache
                 services.GetRequiredService<Cache>();
@@ -76,6 +82,7 @@ namespace DirtBot
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
+                .AddSingleton<DataBasifier>()
                 .AddSingleton<CacheThread>()
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
