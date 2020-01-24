@@ -20,11 +20,7 @@ namespace DirtBot
 
         // List custom emojis here!
         [JsonProperty]
-        public static List<Emoji> Emotes { get; private set; } = new List<Emoji>() 
-        {
-            new Emoji(661269834805542933, "dirtblobhyperhyper", true),
-            new Emoji(634748801617231892, "dirtdontpingme", false) 
-        };
+        public static List<Emoji> Emotes { get; private set; } = new List<Emoji>() { /* Defaults can be listed here */ };
 
         static Config()
         {
