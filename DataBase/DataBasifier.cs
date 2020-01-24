@@ -33,13 +33,16 @@ namespace DirtBot.DataBase
             catch (FileNotFoundException)
             {
                 // No guild stored, create it...
-                guilds.AddFile($"{guild.Id}.json");
-                ManagedFile file = guilds[$"{guild.Id}.json"];
+                await Logger.InfoAsync($"Creating file for guild '{guild.Name}' ({guild.Id})...");
 
                 lock (locker)
                 {
-                    file.WriteJsonData(null);
+                    guilds.AddFile($"{guild.Id}.json");
+                    ManagedFile file = guilds[$"{guild.Id}.json"];
+
+                    file.WriteJsonData(new GuildDataBaseObject(guild.Id, guild.Name, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
                 }
+                await Logger.InfoAsync($"Finished creating file for guild '{guild.Name}' ({guild.Id})!");
             }
         }
     }
