@@ -23,19 +23,28 @@ namespace DirtBot.DataBase.FileManagement
 
         public IEnumerator GetEnumerator()
         {
+            Refresh();
             return Files.GetEnumerator();
         }
         
         public ManagedFile this[int index] 
         {
             get => Files[index];
-            set => Files[index] = value;
+            set 
+            {
+                Files[index] = value;
+                Refresh();
+            }
         }
 
         public ManagedFile this[string filename] 
         {
             get => GetFile(filename);
-            set => Files[IndexOf(filename)] = value;
+            set 
+            {
+                Files[IndexOf(filename)] = value;
+                Refresh();
+            }
         }
 
         /// <summary>
@@ -61,7 +70,7 @@ namespace DirtBot.DataBase.FileManagement
         }
 
         /// <summary>
-        /// Gets the index of a file in Files.
+        /// Gets the index of a file in Files. Returns -1 if no file is found
         /// </summary>
         /// <param name="filename">Filename to search for.</param>
         /// <returns></returns>
@@ -75,7 +84,7 @@ namespace DirtBot.DataBase.FileManagement
                 }
             }
 
-            throw new FileNotFoundException($"No file named '{filename}'");
+            return -1;
         }
 
         /// <summary>
@@ -116,7 +125,10 @@ namespace DirtBot.DataBase.FileManagement
         /// <param name="filename"></param>
         public void AddFile(string filename) 
         {
-            File.Create(DirectoryInfo.FullName + filename);
+            StreamWriter writer = new StreamWriter(DirectoryInfo.FullName + filename);
+            writer.Close();
+            // Refreshing is important! Without it the new file won't be found!
+            Refresh();
         }
 
         /// <summary>
