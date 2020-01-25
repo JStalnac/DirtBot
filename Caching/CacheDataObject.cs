@@ -15,7 +15,7 @@
         string Name { get; set; }
     }
 
-    class CacheDataObject : ICacheDataObject
+    public class CacheDataObject : ICacheDataObject
     {
         public int defaultValue = 0;
         private int value;
