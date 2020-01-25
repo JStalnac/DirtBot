@@ -18,7 +18,6 @@ namespace DirtBot
         [JsonProperty(Required = Required.Always)]
         public static bool LogTraces { get; private set; } = true;
 
-        // List custom emojis here!
         [JsonProperty]
         public static List<Emoji> Emotes { get; private set; } = new List<Emoji>() { /* Defaults can be listed here */ };
 
