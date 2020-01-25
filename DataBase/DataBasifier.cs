@@ -11,7 +11,7 @@ namespace DirtBot.DataBase
     /// <summary>
     /// Adds guilds to our database if they're not in yet.
     /// </summary>
-    internal class DataBasifier : ServiceBase
+    public class DataBasifier : ServiceBase
     {
         object locker = new object();
 
