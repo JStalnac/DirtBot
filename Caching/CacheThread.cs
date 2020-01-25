@@ -8,7 +8,7 @@ using DirtBot.Logging;
 
 namespace DirtBot.Caching
 {
-    class CacheThread
+    public class CacheThread
     {
         static Logger Logger;
         Cache cache;
