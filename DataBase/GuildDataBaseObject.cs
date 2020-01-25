@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace DirtBot.DataBase
 {
-    internal class GuildDataBaseObject
+    public class GuildDataBaseObject
     {
         [JsonProperty]
         public ulong Id { get; private set; }
