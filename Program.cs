@@ -1,7 +1,17 @@
-﻿namespace DirtBot
+﻿using Dash.CMD;
+
+namespace DirtBot
+
 {
     class Program
     {
-        static void Main(string[] args) => new DirtBot().StartAsync().GetAwaiter().GetResult();
+        static void Main(string[] args) 
+        {
+            DashCMD.Start();
+            DashCMD.AllowCMDExit = false;
+            DashCMD.Title = "DirtBot";
+
+            new DirtBot().StartAsync().GetAwaiter().GetResult();
+        }
     }
 }

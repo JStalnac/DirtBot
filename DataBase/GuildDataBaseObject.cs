@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace DirtBot.DataBase
 {
@@ -10,14 +7,11 @@ namespace DirtBot.DataBase
         [JsonProperty]
         public ulong Id { get; private set; }
         [JsonProperty]
-        public string DisplayName { get; private set; }
-        [JsonProperty]
-        public string Prefix { get; private set; }
+        public string Prefix { get; set; }
 
-        public GuildDataBaseObject(ulong id, string displayName, string prefix)
+        public GuildDataBaseObject(ulong id, string prefix)
         {
             Id = id;
-            DisplayName = displayName;
             Prefix = prefix;
         }
     }

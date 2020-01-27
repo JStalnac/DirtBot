@@ -4,13 +4,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using DirtBot.Logging;
+using Dash.CMD;
 
 namespace DirtBot.Caching
 {
     public class CacheThread
     {
-        static Logger Logger;
         Cache cache;
         IServiceProvider services;
 
@@ -34,13 +33,12 @@ namespace DirtBot.Caching
         {
             this.services = services;
             cache = services.GetRequiredService<Cache>();
-            Logger = Logger.GetLogger(this);
         }
 
         private async Task StartCacheAsync() 
         {
-            await Logger.InfoAsync("Cache starting!");
-            await Logger.DebugAsync($"Current update interval: {Config.CacheUpdateInterval}");
+            DashCMD.WriteImportant("Cache starting!");
+            DashCMD.WriteLine($"Current update interval: {Config.CacheUpdateInterval}", ConsoleColor.DarkGray);
 
             while (true) 
             {

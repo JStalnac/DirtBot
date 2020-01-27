@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using Dash.CMD;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DirtBot;
+using DirtBot.DataBase.FileManagement;
 using System.Collections.Generic;
 
 namespace DirtBot.Services
@@ -17,6 +17,8 @@ namespace DirtBot.Services
             InitializeService(services);
             Commands.CommandExecuted += CommandExecutedAsync;
             Client.MessageReceived += MessageReceivedAsync;
+
+            Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
         }
 
         async Task MessageReceivedAsync(SocketMessage arg)
@@ -24,8 +26,8 @@ namespace DirtBot.Services
             if (IsSystemMessage(arg, out SocketUserMessage message)) return;
 
             // Just a quick log...
-            await Logger.VerboseAsync($"Message from {message.Author}: {message.Content}");
-            
+            DashCMD.WriteLine($"Message from {message.Author}: {message.Content}", ConsoleColor.DarkGray);
+
             if (message.Source != MessageSource.User) return;
 
             var argPos = 0;
@@ -43,7 +45,16 @@ namespace DirtBot.Services
             if (result.IsSuccess)
                 return;
 
-            await SendMessageIfAllowed($"error: {result}", context.Channel);
+            DashCMD.WriteWarning($"Command failed: {result}");
+
+            if (result.Error == CommandError.BadArgCount) 
+            {
+                await SendMessageIfAllowed("Hupsista! Liian vähän argumentteja!", context.Channel);
+            }
+            else
+            {
+                await SendMessageIfAllowed($"Tapahtui virhe: {result}", context.Channel);
+            }
         }
     }
 }

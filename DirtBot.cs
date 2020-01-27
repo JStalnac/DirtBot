@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Dash.CMD;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using DirtBot.Services;
 using DirtBot.Caching;
-using DirtBot.Logging;
 using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
 
@@ -17,31 +17,30 @@ namespace DirtBot
 {
     class DirtBot
     {
-        internal async Task StartAsync()
+        public async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
-                Logger Logger = Logger.GetLogger(this);
-
                 var client = services.GetRequiredService<DiscordSocketClient>();
-
+                
                 // Internal
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-
-                // DataBase
 
                 // Load data folders
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
 
-                // Initialize database
-                services.GetRequiredService<DataBasifier>();
+                if (!Directory.Exists("commands/")) Directory.CreateDirectory("commands/");
+                FileManager.RegisterDirectory("Commands", FileManager.LoadDirectory("commands/"));
 
                 // Cache
                 services.GetRequiredService<Cache>();
                 CacheThread cacheThread = services.GetRequiredService<CacheThread>();
                 services.GetRequiredService<AutoCacher>();
+
+                // Database here so that we get the cache before it so we can add the guild to it
+                services.GetRequiredService<DataBasifier>();
 
                 Thread thread = new Thread(CacheThread.InitiazeCacheThread);
                 thread.Start(services);
@@ -69,16 +68,30 @@ namespace DirtBot
 
         private Task LogAsync(LogMessage log)
         {
-            Console.WriteLine(log.ToString());
+            if (!(log.Exception is null) && Config.LogTraces)
+            {
+                DashCMD.WriteWarning(log.ToString());
+            }
+            else if (!(log.Exception is null))
+            {
+                DashCMD.WriteWarning(log.ToString(fullException: false));
+            }
+            else
+            {
+                DashCMD.WriteStandard(log.ToString());
+            }
             return Task.CompletedTask;
         }
 
         private ServiceProvider ConfigureServices()
         {
+            CommandServiceConfig commandConfig = new CommandServiceConfig();
+            commandConfig.DefaultRunMode = RunMode.Async;
+
             return new ServiceCollection()
                 // Discord.Net stuff
                 .AddSingleton<DiscordSocketClient>()
-                .AddSingleton<CommandService>()
+                .AddSingleton(new CommandService(commandConfig))
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()

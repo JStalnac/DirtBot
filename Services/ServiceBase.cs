@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using Dash.CMD;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using DirtBot.Caching;
-using DirtBot.Logging;
 
 namespace DirtBot.Services
 {
@@ -22,9 +22,7 @@ namespace DirtBot.Services
         protected IServiceProvider Services;
         protected Emojis Emojis;
         private Cache cache;
-        private Logger logger;
 
-        protected Logger Logger { get => logger; }
         protected Cache Cache { get => cache;  }
 
         public enum SendResult
@@ -46,7 +44,6 @@ namespace DirtBot.Services
             cache = services.GetRequiredService<Cache>();
             Emojis = services.GetRequiredService<Emojis>();
             Services = services;
-            logger = Logger.GetLogger(this);
 
             // Adding the service.
             Commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
@@ -108,7 +105,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    await Logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    DashCMD.WriteError($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -135,7 +132,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    await Logger.ErrorAsync($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    DashCMD.WriteError($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }
@@ -167,7 +164,7 @@ namespace DirtBot.Services
                 }
                 else
                 {
-                    await Logger.ErrorAsync($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    DashCMD.WriteError($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
                     return SendResult.Unknown;
                 }
             }

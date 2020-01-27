@@ -10,68 +10,47 @@ namespace DirtBot.Caching
     public class CacheSave
     {
         private Dictionary<string, List<ICacheDataObject>> serviceData = new Dictionary<string, List<ICacheDataObject>>();
-        string id;
-        string name;
-        bool remove;
-        private DateTime creationTime;
-        uint removeAfter;
 
         public CacheSave(ulong id, string name = "An object", bool remove = true, uint removeAfter = 300)
         {
-            this.id = id.ToString();
-            this.name = name;
-            creationTime = DateTime.Now;
-            this.remove = remove;
-            this.removeAfter = removeAfter;
+            Id = id.ToString();
+            Name = name;
+            CreationTime = DateTime.Now;
+            Remove = remove;
+            RemoveAfter = removeAfter;
         }
+
+        #region Properties
 
         #region Id
         /// <summary>
         /// The guild's id
         /// </summary>
-        public string Id
-        {
-            get { return id; }
-            set { id = value; }
-        }
+        public string Id { get; set; }
         #endregion
 
         #region Name
-        public string Name 
-        {
-            get { return name; }
-            set { name = value; }
-        }
+        public string Name { get; set; }
         #endregion
 
         #region Remove
-        public bool Remove 
-        {
-            get { return remove; }
-            set { remove = value; }
-        }
+        public bool Remove { get; set; }
         #endregion
 
         #region CreationTime
         /// <summary>
         /// Time that the cache was made. Objects will be removed from cache when unused.
         /// </summary>
-        public DateTime CreationTime 
-        {
-            get { return creationTime; }
-            set { creationTime = value; }
-        }
+        public DateTime CreationTime { get; set; }
         #endregion
 
         #region RemoveAfter
         /// <summary>
         /// Time in seconds when this CacheSave will be removed after adding it.
         /// </summary>
-        public uint RemoveAfter 
-        {
-            get { return removeAfter; }
-            set { removeAfter = value; }
-        }
+        public uint RemoveAfter { get; set; }
+        #endregion
+
         #endregion
 
         /// <summary>
@@ -144,7 +123,7 @@ namespace DirtBot.Caching
         /// <returns></returns>
         public async Task SetRemoveTime()
         {
-            creationTime = DateTime.Now;
+            CreationTime = DateTime.Now;
         }
     }
 }

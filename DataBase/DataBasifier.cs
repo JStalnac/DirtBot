@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Discord.WebSocket;
 using DirtBot.Services;
 using DirtBot.DataBase.FileManagement;
+using Dash.CMD;
 
 namespace DirtBot.DataBase
 {
@@ -13,36 +14,43 @@ namespace DirtBot.DataBase
     /// </summary>
     public class DataBasifier : ServiceBase
     {
-        object locker = new object();
+        static object locker = new object();
 
         public DataBasifier(IServiceProvider services)
         {
             InitializeService(services);
-
             Client.MessageReceived += MessageReceivedAsync;
         }
 
         private async Task MessageReceivedAsync(SocketMessage arg)
         {
-            SocketGuild guild = (arg.Channel as SocketGuildChannel).Guild;
+            await CreateGuildAsync(arg);
+        }
+
+        public static async Task CreateGuildAsync(SocketMessage message) 
+        {
+            if (message.Channel is SocketDMChannel) return;
+            
+            SocketGuild guild = (message.Channel as SocketGuildChannel).Guild;
             ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
             try
             {
-                guilds.GetFile($"{guild.Id}.json");
+                guilds.GetFile($"{guild.Id}");
             }
             catch (FileNotFoundException)
             {
                 // No guild stored, create it...
-                await Logger.InfoAsync($"Creating file for guild '{guild.Name}' ({guild.Id})...");
+                DashCMD.WriteStandard($"Creating file for guild '{guild.Name}' ({guild.Id})...");
 
                 lock (locker)
                 {
-                    guilds.AddFile($"{guild.Id}.json");
-                    ManagedFile file = guilds[$"{guild.Id}.json"];
+                    guilds.AddFile($"{guild.Id}");
+                    ManagedFile file = guilds[$"{guild.Id}"];
 
-                    file.WriteJsonData(new GuildDataBaseObject(guild.Id, guild.Name, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
+                    file.WriteJsonData(new GuildDataBaseObject(guild.Id, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
                 }
-                await Logger.InfoAsync($"Finished creating file for guild '{guild.Name}' ({guild.Id})!");
+
+                DashCMD.WriteStandard($"Finished creating file for guild '{guild.Name}' ({guild.Id})!");
             }
         }
     }
