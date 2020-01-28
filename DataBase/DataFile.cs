@@ -42,7 +42,7 @@ namespace DirtBot.DataBase
         protected virtual void SaveData()
         {
             File.WriteAllText(FullName, SaveToString());
-            Log.WriteLine($"{this.GetType().Name} was saved!");
+            //Log.WriteLine($"{this.GetType().Name} was saved!");
         }
         /// <summary>
         /// Loads the lookup data from the disk.
