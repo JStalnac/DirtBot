@@ -12,7 +12,7 @@ namespace DirtBot.DataBase
         public GuildLookUp()
         {
             LoadData();
-
+            
             foreach (var item in Table)
             {
                 if (!Directory.Exists($"guilds/{item.Key.ToString()}")) 
@@ -24,7 +24,6 @@ namespace DirtBot.DataBase
         }
     }
 
-    // TODO: Make another class that implements LookUpTable as : LookUpTable<string, [some type]>
-    // TODO: Replace LookUpTable<ulong, object>
+    // TODO: Make another class that implements LookUpTable as : LookUpTable<string, [some type]> object??
     // TODO: Load the data for the lookups in the guild folders.
 }
