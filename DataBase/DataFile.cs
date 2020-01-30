@@ -14,7 +14,7 @@ namespace DirtBot.DataBase
         /// <summary>
         /// Returns the full name of the file, including the extension.
         /// </summary>
-        public string FullName => $"{ FileName }.{ FILETYPE }";
+        public string FullName => $"{ FileName }.{ FileType }";
         /// <summary>
         /// Returns the name of the data file (excluding the extension).
         /// </summary>
@@ -33,7 +33,7 @@ namespace DirtBot.DataBase
         /// </summary>
         protected abstract void LoadFromString(string value);
 
-        private const string FILETYPE = "json";
+        private const string FileType = "json";
         private const string TEMPLATE_IDENTIFIER = "template-";
 
         /// <summary>

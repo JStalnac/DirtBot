@@ -23,7 +23,4 @@ namespace DirtBot.DataBase
             }
         }
     }
-
-    // TODO: Make another class that implements LookUpTable as : LookUpTable<string, [some type]> object??
-    // TODO: Load the data for the lookups in the guild folders.
 }
