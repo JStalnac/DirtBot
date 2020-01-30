@@ -6,6 +6,12 @@ namespace DirtBot.DataBase
 {
     public class GuildDataLookUp : LookupTable<ulong, object>
     {
-        public override string FileName => throw new Exception();
+        public ulong Id { get; private set;}
+        public override string FileName => $"guild";
+
+        public GuildDataLookUp(ulong id)
+        {
+            Id = id;
+        }
     }
 }
