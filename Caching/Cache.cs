@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Dash.CMD;
+using Discord;
 using Discord.WebSocket;
 
 namespace DirtBot.Caching
@@ -9,12 +10,49 @@ namespace DirtBot.Caching
     public class Cache
     {
         List<CacheSave> caches = new List<CacheSave>();
-
-        public Cache() { }
+        // List of cached objects by name which have varriables and stuff of dynamic type.
+        public static Dictionary<string, Dictionary<string, dynamic>> CachedObjects = new Dictionary<string, Dictionary<string, dynamic>>();
+        
+        public Dictionary<string, dynamic> this[IMessage message] 
+        {
+            get 
+            {
+                try
+                {
+                    return CachedObjects[(message.Channel as SocketGuildChannel).Guild.Id.ToString()];
+                }
+                catch (KeyNotFoundException)
+                {
+                    return null;
+                }
+            }
+        }
+        public Dictionary<string, dynamic> this[ulong id] 
+        {
+            get => this[id.ToString()];
+        }
+        public Dictionary<string, dynamic> this[string name] 
+        {
+            get 
+            {
+                try
+                {
+                    return CachedObjects[name];
+                }
+                catch (KeyNotFoundException)
+                {
+                    return null;
+                }
+            }
+        }
 
         public List<CacheSave> Caches 
         {
-            get { return caches; }
+            get 
+            {
+                return caches; 
+            }
+
         }
 
         /// <summary>
@@ -30,18 +68,13 @@ namespace DirtBot.Caching
             }
             return null;
         }
-
         public async Task<CacheSave> GetFromCacheAsync(SocketMessage message)
         {
             SocketGuildChannel channel = message.Channel as SocketGuildChannel;
             if (channel.Guild is null) return null;
             string id = channel.Guild.Id.ToString();
 
-            foreach (CacheSave cache in caches)
-            {
-                if (cache.Id == id) return cache;
-            }
-            return null;
+            return await GetFromCacheAsync(channel.Guild.Id);
         }
 
         /// <summary>
@@ -77,18 +110,9 @@ namespace DirtBot.Caching
                 }
             }
         }
-
         public async Task RemoveFromCacheAsync(ulong id)
         {
-            foreach (CacheSave cacheSave in caches)
-            {
-                if (cacheSave.Id == id.ToString()) 
-                {
-                    caches.Remove(cacheSave);
-                    DashCMD.WriteStandard($"{cacheSave.Name} has been removed from cache!");
-                    return;
-                }
-            }
+            await RemoveFromCacheAsync(id.ToString());
         }
     }
 }

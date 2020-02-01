@@ -13,19 +13,19 @@ namespace DirtBot.Caching
             Client.MessageReceived += MessageRecievedAsync;
         }
 
-        public async Task MessageRecievedAsync(SocketMessage arg)
+        public async Task MessageRecievedAsync(SocketMessage message)
         {
             // Filter system messages.
-            SocketUserMessage message = arg as SocketUserMessage;
-            if (message is null) return;
+            if (message.Source != Discord.MessageSource.User) return;
+
             // Filter DM messages.
-            SocketGuildChannel socketGuildChannel = message.Channel as SocketGuildChannel;
-            if (socketGuildChannel is null) return;
+            if (!(message.Channel is SocketGuildChannel)) return;
 
             // Don't cache bot messages. No user interaction there. If it is a command it has been triggered by a user.
             if (message.Author.IsBot) return;
 
             // By now we have only real user messages on guilds.
+            SocketGuildChannel socketGuildChannel = message.Channel as SocketGuildChannel;
 
             // Add to cache
             CacheSave cacheSave = new CacheSave(socketGuildChannel.Guild.Id, socketGuildChannel.Guild.Name);

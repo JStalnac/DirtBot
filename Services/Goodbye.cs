@@ -36,7 +36,7 @@ namespace DirtBot.Services
                         string response = Capitalize(ChooseRandomString(responses));
                         await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
                     }
-
+                    
                     CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
                     if (cacheSave is null) return;
 

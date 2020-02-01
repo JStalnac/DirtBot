@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DirtBot.Caching;
+using Discord;
 using Discord.WebSocket;
 using SmartFormat;
 
@@ -38,6 +39,9 @@ namespace DirtBot.Services
                         string response = Capitalize(ChooseRandomString(responses));
                         await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
                     }
+
+                    // This is where we continue...
+                    //ulong greetingCount = Cache[arg]["greetingCount"];
 
                     CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
                     if (cacheSave is null) return;

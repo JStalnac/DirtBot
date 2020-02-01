@@ -19,6 +19,14 @@ namespace DirtBot.Caching
             Remove = remove;
             RemoveAfter = removeAfter;
         }
+        public CacheSave(string id, string name = "An object", bool remove = true, uint removeAfter = 300)
+        {
+            Id = id;
+            Name = name;
+            CreationTime = DateTime.Now;
+            Remove = remove;
+            RemoveAfter = removeAfter;
+        }
 
         #region Properties
 
@@ -123,7 +131,11 @@ namespace DirtBot.Caching
         /// <returns></returns>
         public async Task SetRemoveTime()
         {
-            CreationTime = DateTime.Now;
+            await SetRemoveTime(DateTime.Now);
+        }
+        public async Task SetRemoveTime(DateTime dateTime) 
+        {
+            CreationTime = dateTime;
         }
     }
 }

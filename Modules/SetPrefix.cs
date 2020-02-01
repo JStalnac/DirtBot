@@ -11,6 +11,8 @@ namespace DirtBot.Modules
     {
         object locker = new object();
 
+        // In the future make the prefix cached
+
         [Command("prefix")]
         public Task Prefix([Summary("New prefix")] string prefix) 
         {
