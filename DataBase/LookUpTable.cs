@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 /*
@@ -10,12 +11,16 @@ namespace DirtBot.DataBase
     /// <summary>
     /// Provides a lookup table that will be serialized into a JSON file.
     /// </summary>
-    public abstract class LookupTable<TKey, TValue> : DataFile, ILookupTable<TKey, TValue>
+    public abstract class LookupTable<TKey, TValue> : DataFile, ILookupTable<TKey, TValue>, ILookup
     {
-        protected const string FILETYPE = "json";
+        protected const string FileType = "json";
         protected const string TEMPLATE_IDENTIFIER = "template-";
 
         protected Dictionary<TKey, TValue> Table => _lookup;
+
+        string ILookup.FullName { get => FileName; set { } }
+        string ILookup.FileType => FileType;
+
         private Dictionary<TKey, TValue> _lookup;
 
         public LookupTable()
@@ -97,5 +102,8 @@ namespace DirtBot.DataBase
             _lookup.Clear();
             SaveData();
         }
+
+        void ILookup.LoadData() => LoadData();
+        void ILookup.EnsureStorageFile() => EnsureStorageFile();
     }
 }

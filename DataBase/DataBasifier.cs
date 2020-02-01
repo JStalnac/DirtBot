@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Discord.WebSocket;
 using DirtBot.Services;
 using DirtBot.DataBase.FileManagement;
+using DirtBot.DataBase.DataBaseObjects;
 using Dash.CMD;
 
 namespace DirtBot.DataBase
@@ -33,9 +34,14 @@ namespace DirtBot.DataBase
             
             SocketGuild guild = (message.Channel as SocketGuildChannel).Guild;
             ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
+
             try
             {
-                guilds.GetFile($"{guild.Id}");
+                ManagedDirectory managed = guilds.GetDirectory($"{guild.Id}");
+                if (managed.Files is null)
+                {
+                    throw new FileNotFoundException();
+                }
             }
             catch (FileNotFoundException)
             {
@@ -44,10 +50,11 @@ namespace DirtBot.DataBase
 
                 lock (locker)
                 {
-                    guilds.AddFile($"{guild.Id}");
-                    ManagedFile file = guilds[$"{guild.Id}"];
+                    guilds.CreateSubdirectory(guild.Id.ToString());
+                    ManagedDirectory guildDirectory = guilds.GetDirectory($"guilds/{guild.Id}");
 
-                    file.WriteJsonData(new GuildDataBaseObject(guild.Id, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
+                    guildDirectory.AddFile("data.json");
+                    guildDirectory["data.json"].WriteJsonData(new GuildDataObject(guild.Id, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
                 }
 
                 DashCMD.WriteStandard($"Finished creating file for guild '{guild.Name}' ({guild.Id})!");

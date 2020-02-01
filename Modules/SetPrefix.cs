@@ -3,11 +3,14 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
+using DirtBot.DataBase.DataBaseObjects;
 
 namespace DirtBot.Modules
 {
     public class SetPrefix : ModuleBase<SocketCommandContext>
     {
+        object locker = new object();
+
         [Command("prefix")]
         public Task Prefix([Summary("New prefix")] string prefix) 
         {
@@ -23,14 +26,19 @@ namespace DirtBot.Modules
                 ReplyAsync("Olen pahoillani. Antamasi prefix on liian pitkä. Maksimi pituus on 12 merkkiä.");
                 return Task.CompletedTask;
             }
+            // TODO: Check if the prefix is the same as the current one...
 
             ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
-            ManagedFile file = guilds.GetFile((Context.Channel as SocketGuildChannel).Guild.Id.ToString());
+            SocketGuildChannel guildChannel = Context.Channel as SocketGuildChannel;
+            ManagedFile file = guilds.GetDirectory(guildChannel.Guild.Id.ToString()).GetFile("data.json");
 
-            GuildDataBaseObject currentGuild = file.ReadJsonData<GuildDataBaseObject>() as GuildDataBaseObject;
-            currentGuild.Prefix = prefix;
+            lock (locker)
+            {
+                GuildDataObject currentGuild = file.ReadJsonData<GuildDataObject>() as GuildDataObject;
+                currentGuild.Prefix = prefix;
 
-            file.WriteJsonData(currentGuild, Newtonsoft.Json.Formatting.Indented);
+                file.WriteJsonData(currentGuild, Newtonsoft.Json.Formatting.Indented);
+            }
 
             ReplyAsync($"Palvelimen uusi prefix on nyt **{prefix}**");
 

@@ -5,20 +5,28 @@ using System.Collections.Generic;
 
 namespace DirtBot.DataBase
 {
-    public class GuildLookUp : LookupTable<ulong, object>
+    public class GuildLookup : LookupTable<ulong, GuildDataLookUp>
     {
         public override string FileName => "guilds";
+        public new static Dictionary<ulong, GuildDataLookUp> Table;
 
-        public GuildLookUp()
+        public GuildLookup()
         {
+            EnsureStorageFile();
             LoadData();
-            
+        }
+
+        public void LoadGuilds() 
+        {
             foreach (var item in Table)
             {
-                if (!Directory.Exists($"guilds/{item.Key.ToString()}")) 
+                Dash.CMD.DashCMD.WriteStandard(item.Key.ToString());
+
+                if (!Directory.Exists($"guilds/{item.Key.ToString()}"))
                 {
                     Dash.CMD.DashCMD.WriteWarning($"Guild 'guilds/{item.Key.ToString()}' could not be found.");
-                    Directory.CreateDirectory($"guilds/{item.Key.ToString()}");
+                    item.Value.EnsureStorageDirectory();
+                    item.Value.LoadData();
                 }
             }
         }

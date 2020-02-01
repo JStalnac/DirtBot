@@ -19,7 +19,7 @@ namespace DirtBot.Services
     {
         protected CommandService Commands;
         protected DiscordSocketClient Client;
-        protected IServiceProvider Services;
+        protected static IServiceProvider Services;
         protected Emojis Emojis;
         private Cache cache;
 

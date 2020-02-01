@@ -12,14 +12,15 @@ namespace DirtBot.DataBase.FileManagement
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static ManagedDirectory LoadDirectory(string path) 
+        public static ManagedDirectory LoadDirectory(string path)
         {
-            if (!Directory.Exists(path)) 
+            if (!Directory.Exists(path))
             {
                 throw new DirectoryNotFoundException($"Unable to load files from '{path}'. That folder does not exist.");
             }
 
             List<ManagedFile> files = new List<ManagedFile>();
+            List<ManagedDirectory> directories = new List<ManagedDirectory>();
 
             foreach (string filename in Directory.EnumerateFiles(path))
             {
@@ -27,7 +28,13 @@ namespace DirtBot.DataBase.FileManagement
                 files.Add(managedFile);
             }
 
-            return new ManagedDirectory(path, files.ToArray());
+            foreach (string directoryName in Directory.EnumerateDirectories(path))
+            {
+                ManagedDirectory directory = LoadDirectory(directoryName);
+                directories.Add(directory);
+            }
+
+            return new ManagedDirectory(path, files.ToArray(), directories.ToArray());
         }
 
         /// <summary>
@@ -35,9 +42,9 @@ namespace DirtBot.DataBase.FileManagement
         /// </summary>
         /// <param name="filepath"></param>
         /// <returns></returns>
-        public static ManagedFile LoadFile(string filepath) 
+        public static ManagedFile LoadFile(string filepath)
         {
-            if (!File.Exists(filepath)) 
+            if (!File.Exists(filepath))
             {
                 throw new FileNotFoundException($"File '{filepath}' not found!");
             }

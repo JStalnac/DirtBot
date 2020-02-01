@@ -12,17 +12,21 @@ using DirtBot.Services;
 using DirtBot.Caching;
 using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
+using System.Collections.Generic;
 
 namespace DirtBot
 {
     class DirtBot
     {
+        public static ServiceProvider Services { get; private set; }
+
         public async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
                 var client = services.GetRequiredService<DiscordSocketClient>();
-                
+                Services = services;
+
                 // Internal
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
@@ -41,6 +45,9 @@ namespace DirtBot
 
                 // Database here so that we get the cache before it so we can add the guild to it
                 services.GetRequiredService<DataBasifier>();
+
+                //GuildLookup guildLookup = services.GetRequiredService<GuildLookup>();
+                //guildLookup.LoadGuilds();
 
                 Thread thread = new Thread(CacheThread.InitiazeCacheThread);
                 thread.Start(services);
@@ -100,6 +107,8 @@ namespace DirtBot
                 .AddSingleton<AutoCacher>()
                 .AddSingleton<Cache>()
                 .AddSingleton<Emojis>()
+                // Database
+                .AddSingleton<GuildLookup>()
                 // Other services
                 .AddSingleton<Ping>()
                 .AddSingleton<Scares>()

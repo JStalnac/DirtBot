@@ -2,6 +2,8 @@
  * From BrackeysBot - https://github.com/YilianSource/brackeys-bot/blob/master/Data/ILookupTable.cs
  */
 
+using System;
+
 namespace DirtBot.DataBase
 {
     /// <summary>
