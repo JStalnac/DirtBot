@@ -10,7 +10,7 @@ namespace DirtBot.Services
     public class Greetings : ServiceBase
     {
         // These are things which people can say.
-        string[] messages = { "moi", "moi!", "terve", "terve!", "hei", "hei!", "huomenta!", "huomenta", "aamua", "aamua!", "iltaa", "iltaa!" };
+        string[] messages = { "moi", "terve", "hei", "huomenta", "aamua", "iltaa" };
         string[] skippedMessages = { "moikka", "moikka", "heippa" };
         // These will be capitalized. Stuff that I will respond.
         string[] responses = { "moi", "moi! ", "moi 👋", "moi! 👋", "Moi {Username}!", "Moi {Username} 👋", "Moi {Username}", 
@@ -25,45 +25,52 @@ namespace DirtBot.Services
 
         async Task MessageRevievedAsync(SocketMessage message)
         {
-            bool currentUser = message.Author.Id == Client.CurrentUser.Id;
-            bool notUserMessage = message.Source != MessageSource.User;
-
-            DashCMD.WriteImportant($"Current user: {currentUser}, Not user message: {notUserMessage}");
-
-            if (currentUser) return;
-            if (notUserMessage) return;
+            // No responding to ourselves or to the system or to our bot bros!
+            if (message.Author.Id == Client.CurrentUser.Id) return;
+            if (message.Source != MessageSource.User) return;
 
             foreach (string str in messages)
             {
                 foreach (string skipped in skippedMessages)
                 {
-                    if (message.Content.ToLower().TrimEnd(' ').Contains(str) && message.Content.ToLower().TrimEnd(' ').StartsWith(skipped))
+                    if (!message.Content.ToLower().Contains(skipped))
                     {
-                        if (IsDMChannel(message.Channel))
-                        {
-                            string response = Capitalize(ChooseRandomString(responses));
-                            await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
-                        }
-                        else
-                        {
-                            long greetingCount = Cache[message]["greetingCount"];
-                            long maxGreetCount = Cache[message]["maxGreetCount"];
-
-                            greetingCount++;
-                            if (greetingCount >= maxGreetCount)
-                            {
-                                string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
-                                await SendMessageIfAllowed(response, message.Channel);
-                                greetingCount = 0;
-                            }
-                            await SendMessageIfAllowed($"Greetings: greetingCount: {greetingCount}", message.Channel);
-
-                            Cache[message]["greetingCount"] = greetingCount;
-                        }
-                        
-                        // Remember to return!
+                        continue;
+                    }
+                    else
+                    {
+                        // They are saying goodbye
                         return;
                     }
+                }
+
+                // Message filtered
+                if (message.Content.ToLower().Contains(str)) 
+                {
+                    if (IsDMChannel(message.Channel))
+                    {
+                        string response = Capitalize(ChooseRandomString(responses));
+                        await message.Channel.SendMessageAsync(Smart.Format(response, message.Author));
+                    }
+                    else
+                    {
+                        long greetingCount = Cache[message]["greetingCount"];
+                        long maxGreetCount = Cache[message]["maxGreetCount"];
+
+                        greetingCount++;
+                        if (greetingCount >= maxGreetCount)
+                        {
+                            string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
+                            await SendMessageIfAllowed(response, message.Channel);
+                            greetingCount = 0;
+                        }
+                        await SendMessageIfAllowed($"Greetings: greetingCount: {greetingCount}", message.Channel);
+
+                        Cache[message]["greetingCount"] = greetingCount;
+                    }
+
+                    // Remember to return!
+                    return;
                 }
             }
         }

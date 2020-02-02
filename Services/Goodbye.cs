@@ -21,6 +21,7 @@ namespace DirtBot.Services
 
         async Task MessageRevievedAsync(SocketMessage message)
         {
+            // No responding to ourselves or to the system or to our bot bros!
             if (message.Author.Id == Client.CurrentUser.Id) return;
             if (message.Source != Discord.MessageSource.User) return;
  
@@ -30,11 +31,13 @@ namespace DirtBot.Services
                 {
                     if (IsDMChannel(message.Channel)) 
                     {
+                        // Just a DM. Just reply.
                         string response = Capitalize(ChooseRandomString(responses));
-                        await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
+                        await message.Channel.SendMessageAsync(Smart.Format(response, message.Author));
                         return;
                     }
 
+                    // An actual guild!
                     long greetingCount = Cache[message]["greetingCount"];
                     long maxGreetCount = Cache[message]["maxGreetCount"];
 
