@@ -41,7 +41,7 @@ namespace DirtBot
                 // Cache
                 services.GetRequiredService<Cache>();
                 CacheThread cacheThread = services.GetRequiredService<CacheThread>();
-                services.GetRequiredService<AutoCacher>();
+                services.GetRequiredService<Cacher>();
 
                 // Database here so that we get the cache before it so we can add the guild to it
                 services.GetRequiredService<DataBasifier>();
@@ -50,7 +50,7 @@ namespace DirtBot
                 //guildLookup.LoadGuilds();
 
                 Thread thread = new Thread(CacheThread.InitiazeCacheThread);
-                thread.Start(services);
+                //thread.Start(services);
 
                 // Login
                 await client.LoginAsync(TokenType.Bot, Config.Token);
@@ -104,7 +104,7 @@ namespace DirtBot
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<DataBasifier>()
                 .AddSingleton<CacheThread>()
-                .AddSingleton<AutoCacher>()
+                .AddSingleton<Cacher>()
                 .AddSingleton<Cache>()
                 .AddSingleton<Emojis>()
                 // Database
