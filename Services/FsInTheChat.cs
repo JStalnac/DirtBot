@@ -16,9 +16,9 @@ namespace DirtBot.Services
             Client.MessageReceived += MessageReviecedAsync;
         }
 
-        async Task MessageReviecedAsync(SocketMessage arg)
+        async Task MessageReviecedAsync(SocketMessage message)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (message.Source != Discord.MessageSource.User) return;
             if (message.Author.Id == Client.CurrentUser.Id) return; // Don't respond to ourselves! That will make a bloooody mess!
 
             if (message.Content.ToLower() == "f" || message.Content.ToLower() == "f ")
@@ -29,7 +29,7 @@ namespace DirtBot.Services
                     return;
                 }
 
-                CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
+                CacheSave cacheSave = await Cache.GetFromCacheAsync(message as SocketUserMessage);
                 if (cacheSave is null) return;
 
                 FsInTheChatDataObject obj = (await cacheSave.GetFromDataUnderKeyAsync("FsInTheChat", "F_COUNT", cacheFallBackObject)) as FsInTheChatDataObject;

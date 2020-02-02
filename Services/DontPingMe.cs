@@ -25,8 +25,10 @@ namespace DirtBot.Services
 
         async Task MessageRevievedAsync(SocketMessage arg)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (arg.Source != MessageSource.User) return;
             bool mentioned = false;
+
+            SocketUserMessage message = arg as SocketUserMessage;
 
             foreach (ITag tag in message.Tags)
             {
