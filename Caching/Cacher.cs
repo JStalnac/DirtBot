@@ -1,8 +1,10 @@
 ﻿using System;
-using DirtBot.Services;
+using System.Threading;
 using System.Threading.Tasks;
-using Discord.WebSocket;
 using System.Collections.Generic;
+using Discord.WebSocket;
+using DirtBot.Services;
+using Dash.CMD;
 
 namespace DirtBot.Caching
 {
@@ -10,19 +12,84 @@ namespace DirtBot.Caching
     {
         public static Dictionary<string, dynamic> DefaultKeys { get; } = new Dictionary<string, dynamic>()
         {
+            // Services etc
             { "greetingCount", 4 },
             { "maxGreetCount", 4 },
+            { "fCount", 4 },
+            { "maxfCount", 4 },
+            // Object values
             { "RemoveAfter", 300 },
             { "Remove", true },
         };
 
         public Cacher(IServiceProvider services)
         {
+            if (services is null)
+            {
+                DashCMD.WriteError($"Cache: Services do not exist!");
+                Environment.Exit(1);
+            }
+
             InitializeService(services);
-            Client.MessageReceived += MessageRecievedAsync;
+            Client.MessageReceived += AddMessageToCache;
         }
 
-        public async Task MessageRecievedAsync(SocketMessage message)
+        /// <summary>
+        /// Starts the cache thread
+        /// </summary>
+        /// <param name="services"></param>
+        public static void InitiazeCacheThread()
+        {
+            DashCMD.WriteImportant("Cache starting!");
+            DashCMD.WriteLine($"Current update interval: {Config.CacheUpdateInterval}", ConsoleColor.DarkGray);
+
+            while (true)
+            {
+                DateTime currentTime = DateTime.Now;
+
+                foreach (var key in Cache.Caches.Keys)
+                {
+                    // Loading the cached object here for efficiency, we won't have to get it again.
+                    Dictionary<string, dynamic> cached = Cache.Caches[key];
+
+                    try
+                    {
+                        // If the cache should be removed
+                        if (cached["Remove"])
+                        {
+                            TimeSpan timeDifference = currentTime - cached["CreationTime"];
+
+                            // Check if it is time to remove this object. Remove it also if the time is less than our update interval
+                            if (timeDifference.TotalSeconds > cached["RemoveAfter"] || cached["RemoveAfter"] < Config.CacheUpdateInterval / 1000) 
+                            {
+                                Cache.Caches.Remove(key);
+                                // Log...
+                                DashCMD.WriteStandard($"{key} has been removed from cache!");
+                            }
+                        }
+                        else
+                        {
+                            // Object shouldn't be removed... Next one please!
+                            continue;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        // Oopsie...
+                        DashCMD.WriteError($"Cache update failed with\n{e}");
+                    }
+                }
+
+                Thread.Sleep(Config.CacheUpdateInterval);
+            }
+        }
+
+        /// <summary>
+        /// Adds a message to cache when it is received.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task AddMessageToCache(SocketMessage message)
         {
             // Filter system messages.
             if (message.Source != Discord.MessageSource.User) return;
@@ -39,14 +106,15 @@ namespace DirtBot.Caching
             // Add to cache
 
             // Check if the guild has been already added...
-            if (Cache.CachedObjects.ContainsKey(guildChannel.Guild.Id.ToString())) 
+            if (Cache.Caches.ContainsKey(guildChannel.Guild.Id.ToString())) 
             {
                 // It has. Set the creation time again...
                 Cache[message]["CreationTime"] = DateTime.Now;
+                DashCMD.WriteStandard($"Remove time for '{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been extended!");
             }
             else
             {
-                Cache.CachedObjects.Add(guildChannel.Guild.Id.ToString(), new Dictionary<string, dynamic>());
+                Cache.Caches.Add(guildChannel.Guild.Id.ToString(), new Dictionary<string, dynamic>());
 
                 foreach (var key in DefaultKeys)
                 {
@@ -55,10 +123,8 @@ namespace DirtBot.Caching
                 
                 // The time this has been created. Used for removing the cache after a while
                 Cache[message].Add("CreationTime", DateTime.Now);
+                DashCMD.WriteStandard($"'{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been added to cache!");
             }
-
-            //CacheSave cacheSave = new CacheSave(socketGuildChannel.Guild.Id, socketGuildChannel.Guild.Name);
-            //await Cache.AddToCacheAsync(cacheSave);
         }
     }
 }
