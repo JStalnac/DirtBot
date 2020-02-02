@@ -48,7 +48,6 @@ namespace DirtBot.Services
                         await SendMessageIfAllowed(response, message.Channel);
                         greetingCount = 0;
                     }
-                    await SendMessageIfAllowed($"Goodbye: greetingCount: {greetingCount}", message.Channel);
 
                     Cache[message]["greetingCount"] = greetingCount;
 
