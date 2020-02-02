@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Discord.WebSocket;
 using DirtBot.Services;
 using DirtBot.DataBase.FileManagement;

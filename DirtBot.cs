@@ -6,26 +6,22 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Dash.CMD;
 using Discord;
-using Discord.WebSocket;
 using Discord.Commands;
+using Discord.WebSocket;
 using DirtBot.Services;
 using DirtBot.Caching;
 using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
-using System.Collections.Generic;
 
 namespace DirtBot
 {
-    class DirtBot
+    public class DirtBot
     {
-        public static ServiceProvider Services { get; private set; }
-
         public async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
                 var client = services.GetRequiredService<DiscordSocketClient>();
-                Services = services;
 
                 // Internal
                 client.Log += LogAsync;
@@ -40,17 +36,13 @@ namespace DirtBot
 
                 // Cache
                 services.GetRequiredService<Cache>();
-                CacheThread cacheThread = services.GetRequiredService<CacheThread>();
-                services.GetRequiredService<AutoCacher>();
+                services.GetRequiredService<Cacher>();
 
                 // Database here so that we get the cache before it so we can add the guild to it
                 services.GetRequiredService<DataBasifier>();
 
-                //GuildLookup guildLookup = services.GetRequiredService<GuildLookup>();
-                //guildLookup.LoadGuilds();
-
-                Thread thread = new Thread(CacheThread.InitiazeCacheThread);
-                thread.Start(services);
+                Thread thread = new Thread(Cacher.InitiazeCacheThread);
+                thread.Start();
 
                 // Login
                 await client.LoginAsync(TokenType.Bot, Config.Token);
@@ -103,12 +95,9 @@ namespace DirtBot
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<DataBasifier>()
-                .AddSingleton<CacheThread>()
-                .AddSingleton<AutoCacher>()
+                .AddSingleton<Cacher>()
                 .AddSingleton<Cache>()
                 .AddSingleton<Emojis>()
-                // Database
-                .AddSingleton<GuildLookup>()
                 // Other services
                 .AddSingleton<Ping>()
                 .AddSingleton<Scares>()

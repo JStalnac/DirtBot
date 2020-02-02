@@ -196,27 +196,6 @@ namespace DirtBot.Services
         }
 
         /// <summary>
-        /// Returns true if the message is a system message. Returns a out parametre userMessage
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="userMessage"></param>
-        /// <returns></returns>
-        protected bool IsSystemMessage(SocketMessage message, out SocketUserMessage userMessage)
-        {
-            SocketUserMessage msg = message as SocketUserMessage;
-            if (msg is null)
-            {
-                userMessage = null;
-                return true;
-            }
-            else
-            {
-                userMessage = msg;
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Filters system and bot messages. Returns true if the message is a bot or system message. Returns a out parametre userMessage
         /// </summary>
         /// <param name="message"></param>

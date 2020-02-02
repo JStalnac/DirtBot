@@ -12,9 +12,9 @@ namespace DirtBot.Services
             Client.MessageReceived += MessageReceivedAsync;
         }
 
-        async Task MessageReceivedAsync(SocketMessage arg)
+        async Task MessageReceivedAsync(SocketMessage message)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (message.Source != Discord.MessageSource.User) return;
             if (message.Author.IsBot || message.Author == Client.CurrentUser) return;
 
             if (message.Content.ToLower().StartsWith("ping"))

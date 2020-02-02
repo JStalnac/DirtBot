@@ -23,17 +23,18 @@ namespace DirtBot.Services
 
         async Task MessageReceivedAsync(SocketMessage arg)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
-
             // Just a quick log...
-            DashCMD.WriteLine($"Message from {message.Author}: {message.Content}", ConsoleColor.DarkGray);
+            DashCMD.WriteLine($"Message from {arg.Author}: {arg.Content}", ConsoleColor.DarkGray);
+
+            if (arg.Source != MessageSource.User) return;
+            SocketUserMessage message = arg as SocketUserMessage;
 
             if (message.Source != MessageSource.User) return;
 
             var argPos = 0;
             if (!message.HasStringPrefix(Config.Prefix, ref argPos)) return;
 
-            var context = new SocketCommandContext(Client, message);
+            var context = new SocketCommandContext(Client, message as SocketUserMessage);
             await Commands.ExecuteAsync(context, argPos, Services);
         }
 

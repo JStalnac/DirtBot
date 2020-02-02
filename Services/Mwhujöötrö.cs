@@ -18,9 +18,9 @@ namespace DirtBot.Services
             this.responses = responses;
         }
 
-        async Task MessageRecievedAsync(SocketMessage arg)
+        async Task MessageRecievedAsync(SocketMessage message)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
+            if (message.Source != Discord.MessageSource.User) return;
 
             if (message.Content.Contains("Mwhujöötrö")) 
             {

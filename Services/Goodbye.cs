@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DirtBot.Caching;
 using Discord.WebSocket;
 using SmartFormat;
 
@@ -8,79 +7,53 @@ namespace DirtBot.Services
 {
     public class Goodbye : ServiceBase
     {
-        GreetingSharedDataObject cacheFallBackObject;
-
         // These are things which people can say.
-        string[] messages = { "moikka", "moikka", "heippa", "heippa", "bye", "bye!" };
+        string[] messages = { "moikka", "moikka", "heippa", "bye", "bye!" };
         // These will be capitalized. Stuff that I will respond.
         string[] responses = { "moikka!", "moikka! 👋", "Moikka {Username}! 👋", "Moikka {Username}!", "hyvää päivän jatkoa {Username}!", "👋" };
 
         public Goodbye(IServiceProvider services)
         {
             InitializeService(services);
-            cacheFallBackObject = new GreetingSharedDataObject("BYES");
             Client.MessageReceived += MessageRevievedAsync;
         }
 
-        async Task MessageRevievedAsync(SocketMessage arg)
+        async Task MessageRevievedAsync(SocketMessage message)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
+            // No responding to ourselves or to the system or to our bot bros!
             if (message.Author.Id == Client.CurrentUser.Id) return;
-
+            if (message.Source != Discord.MessageSource.User) return;
+ 
             foreach (string str in messages)
             {
                 if (message.Content.ToLower().Contains(str))
                 {
                     if (IsDMChannel(message.Channel)) 
                     {
+                        // Just a DM. Just reply.
                         string response = Capitalize(ChooseRandomString(responses));
-                        await message.Channel.SendMessageAsync(string.Format(response, message.Author.Username));
+                        await message.Channel.SendMessageAsync(Smart.Format(response, message.Author));
+                        return;
                     }
-                    
-                    CacheSave cacheSave = await Cache.GetFromCacheAsync(arg);
-                    if (cacheSave is null) return;
 
-                    GreetingSharedDataObject dataObject = await cacheSave.GetFromDataUnderKeyAsync("Greets", "BYES", cacheFallBackObject) as GreetingSharedDataObject;
+                    // An actual guild!
+                    long greetingCount = Cache[message]["greetingCount"];
+                    long maxGreetCount = Cache[message]["maxGreetCount"];
 
-                    dataObject.Value += 1;
-                    if (dataObject.Value >= int.Parse(dataObject.DeafaultValue.ToString())) 
+                    greetingCount++;
+                    if (greetingCount >= maxGreetCount) 
                     {
                         string response = Capitalize(Smart.Format(ChooseRandomString(responses), message.Author));
                         await SendMessageIfAllowed(response, message.Channel);
-                        dataObject.Value = 0;
+                        greetingCount = 0;
                     }
+
+                    Cache[message]["greetingCount"] = greetingCount;
+
+                    // Remember to return here!
+                    return;
                 }
             }
-        }
-    }
-
-    class GreetingSharedDataObject : ICacheDataObject
-    {
-        protected int defaultValue = 4;
-        protected string name;
-        protected int value;
-
-        public GreetingSharedDataObject(string name)
-        {
-            this.name = name;
-            value = defaultValue;
-        }
-
-        public object DeafaultValue 
-        {
-            get { return defaultValue; }
-        }
-
-        public int Value 
-        {
-            get { return value; }
-            set { this.value = value; }
-        }
-
-        public string Name 
-        {
-            get { return name; }
-            set { name = value; }
         }
     }
 }
