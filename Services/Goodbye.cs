@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DirtBot.Caching;
 using Discord.WebSocket;
 using SmartFormat;
 

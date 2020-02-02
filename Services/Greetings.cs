@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Discord;
 using SmartFormat;
 using Discord.WebSocket;
-using Dash.CMD;
 
 namespace DirtBot.Services
 {
