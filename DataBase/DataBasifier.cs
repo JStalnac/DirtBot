@@ -2,10 +2,11 @@
 using System.IO;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using DirtBot.Caching;
 using DirtBot.Services;
 using DirtBot.DataBase.FileManagement;
 using DirtBot.DataBase.DataBaseObjects;
-using Dash.CMD;
+using Discord;
 
 namespace DirtBot.DataBase
 {
@@ -45,7 +46,7 @@ namespace DirtBot.DataBase
             catch (FileNotFoundException)
             {
                 // No guild stored, create it...
-                DashCMD.WriteStandard($"Creating file for guild '{guild.Name}' ({guild.Id})...");
+                Logger.Log($"Creating file for guild '{guild.Name}' ({guild.Id})...",  true, foregroundColor: ConsoleColor.White);
 
                 lock (locker)
                 {
@@ -56,8 +57,47 @@ namespace DirtBot.DataBase
                     guildDirectory["data.json"].WriteJsonData(new GuildDataObject(guild.Id, Config.Prefix), Newtonsoft.Json.Formatting.Indented);
                 }
 
-                DashCMD.WriteStandard($"Finished creating file for guild '{guild.Name}' ({guild.Id})!");
+                Logger.Log($"Finished creating file for guild '{guild.Name}' ({guild.Id})!", true, foregroundColor: ConsoleColor.White);
             }
+            finally 
+            {
+                // Caching the guild
+                ManagedDirectory guildDirectory = guilds.GetDirectory(guild.Id.ToString());
+
+                ManagedFile file = guildDirectory["data.json"];
+
+                GuildDataObject guildData = file.ReadJsonData<GuildDataObject>() as GuildDataObject;
+                
+                // Adding the values to cache
+                Cache cache = new Cache();
+                cache[message]["Prefix"] = guildData.Prefix;
+            }
+        }
+
+        public static void SetPrefix(IMessage message, string prefix)
+        {
+            if (message.Channel is SocketGuildChannel) 
+            {
+                SetPrefix((message.Channel as SocketGuildChannel).Guild.Id, prefix);
+            }
+        }
+
+        public static void SetPrefix(ulong id, string prefix) 
+        {
+            lock (locker)
+            {
+                ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
+                ManagedDirectory guildDirectory = guilds.GetDirectory($"guilds/{id}");
+
+                ManagedFile file = guildDirectory.GetFile("data.json");
+                GuildDataObject guildData = file.ReadJsonData<GuildDataObject>() as GuildDataObject;
+
+                guildData.Prefix = prefix;
+
+                file.WriteJsonData(guildData);
+            }
+
+            new Caching.Cache()[id]["Prefix"] = prefix;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Dash.CMD;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -21,18 +20,30 @@ namespace DirtBot.Services
             Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
         }
 
+        string GetPrefix(SocketMessage message) 
+        {
+            if (message.Channel is SocketGuildChannel) 
+            {
+                return Cache[message]["Prefix"];
+            }
+            else
+            {
+                return Config.Prefix;
+            }
+        }
+
         async Task MessageReceivedAsync(SocketMessage arg)
         {
             // Just a quick log...
-            DashCMD.WriteLine($"Message from {arg.Author}: {arg.Content}", ConsoleColor.DarkGray);
-
+            Logger.Log($"Message from {arg.Author}: {arg.Content}", foregroundColor: ConsoleColor.DarkGray);
+            
             if (arg.Source != MessageSource.User) return;
             SocketUserMessage message = arg as SocketUserMessage;
 
             if (message.Source != MessageSource.User) return;
 
             var argPos = 0;
-            if (!message.HasStringPrefix(Config.Prefix, ref argPos)) return;
+            if (!message.HasStringPrefix(GetPrefix(arg), ref argPos)) return;
 
             var context = new SocketCommandContext(Client, message as SocketUserMessage);
             await Commands.ExecuteAsync(context, argPos, Services);
@@ -40,13 +51,14 @@ namespace DirtBot.Services
 
         async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
+            Logger.Log("Executed command!", foregroundColor: ConsoleColor.DarkGray);
+
             if (!command.IsSpecified)
                 return;
-
             if (result.IsSuccess)
                 return;
 
-            DashCMD.WriteWarning($"Command failed: {result}");
+            Logger.Log($"Command failed: {result}", true, foregroundColor: ConsoleColor.Yellow);
 
             if (result.Error == CommandError.BadArgCount) 
             {

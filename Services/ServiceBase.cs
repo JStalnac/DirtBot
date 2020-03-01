@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
-using Dash.CMD;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -105,7 +104,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    DashCMD.WriteError($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    Logger.Log($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}", true, exception: e, foregroundColor: ConsoleColor.Red);
                     return SendResult.Unknown;
                 }
             }
@@ -132,7 +131,7 @@ namespace DirtBot.Services
                 }
                 else // Something else that we don't handle
                 {
-                    DashCMD.WriteError($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    Logger.Log($"Error while sending message: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode}", true, exception: e, foregroundColor: ConsoleColor.Red);
                     return SendResult.Unknown;
                 }
             }
@@ -164,7 +163,7 @@ namespace DirtBot.Services
                 }
                 else
                 {
-                    DashCMD.WriteError($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode} Exception:\n{e}");
+                    Logger.Log($"Error while adding reaction: DiscordCode: {e.DiscordCode} HttpCode: {e.HttpCode}", true, exception: e, foregroundColor: ConsoleColor.Red);
                     return SendResult.Unknown;
                 }
             }

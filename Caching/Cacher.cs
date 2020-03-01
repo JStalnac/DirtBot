@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Discord.WebSocket;
 using DirtBot.Services;
-using Dash.CMD;
 
 namespace DirtBot.Caching
 {
@@ -20,13 +19,15 @@ namespace DirtBot.Caching
             // Object values
             { "RemoveAfter", 300 },
             { "Remove", true },
+            // CreationTime
+            // Name
         };
 
         public Cacher(IServiceProvider services)
         {
             if (services is null)
             {
-                DashCMD.WriteError($"Cache: Services do not exist!");
+                Logger.Log($"Cache: Services do not exist!", true, foregroundColor: ConsoleColor.Red);
                 Environment.Exit(1);
             }
 
@@ -40,8 +41,8 @@ namespace DirtBot.Caching
         /// <param name="services"></param>
         public static void InitiazeCacheThread()
         {
-            DashCMD.WriteImportant("Cache starting!");
-            DashCMD.WriteLine($"Current update interval: {Config.CacheUpdateInterval}", ConsoleColor.DarkGray);
+            Logger.Log("Cache starting!", true, foregroundColor: ConsoleColor.Cyan);
+            Logger.Log($"Current update interval: {Config.CacheUpdateInterval}", foregroundColor: ConsoleColor.DarkGray);
 
             while (true)
             {
@@ -58,13 +59,13 @@ namespace DirtBot.Caching
                         if (cached["Remove"])
                         {
                             TimeSpan timeDifference = currentTime - cached["CreationTime"];
-
+                            
                             // Check if it is time to remove this object. Remove it also if the time is less than our update interval
                             if (timeDifference.TotalSeconds > cached["RemoveAfter"] || cached["RemoveAfter"] < Config.CacheUpdateInterval / 1000) 
                             {
                                 Cache.Caches.Remove(key);
                                 // Log...
-                                DashCMD.WriteStandard($"{key} has been removed from cache!");
+                                Logger.Log($"{key} (Name: '{cached["Name"]}') has been removed from cache!", true, foregroundColor: ConsoleColor.White);
                             }
                         }
                         else
@@ -76,7 +77,7 @@ namespace DirtBot.Caching
                     catch (Exception e)
                     {
                         // Oopsie...
-                        DashCMD.WriteError($"Cache update failed with\n{e}");
+                        Logger.Log($"Cache update failed!", true, exception: e, foregroundColor: ConsoleColor.Red);
                     }
                 }
 
@@ -110,7 +111,7 @@ namespace DirtBot.Caching
             {
                 // It has. Set the creation time again...
                 Cache[message]["CreationTime"] = DateTime.Now;
-                DashCMD.WriteStandard($"Remove time for '{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been extended!");
+                Logger.Log($"Remove time for '{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been extended!", true, foregroundColor: ConsoleColor.White);
             }
             else
             {
@@ -123,7 +124,9 @@ namespace DirtBot.Caching
                 
                 // The time this has been created. Used for removing the cache after a while
                 Cache[message].Add("CreationTime", DateTime.Now);
-                DashCMD.WriteStandard($"'{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been added to cache!");
+                Cache[message].Add("Name", guildChannel.Guild.Name);
+
+                Logger.Log($"'{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been added to cache!", true, foregroundColor: ConsoleColor.White);
             }
         }
     }

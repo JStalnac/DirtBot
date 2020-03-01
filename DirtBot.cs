@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Dash.CMD;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -12,6 +11,7 @@ using DirtBot.Services;
 using DirtBot.Caching;
 using DirtBot.DataBase;
 using DirtBot.DataBase.FileManagement;
+using System.Diagnostics;
 
 namespace DirtBot
 {
@@ -22,11 +22,11 @@ namespace DirtBot
             using (var services = ConfigureServices())
             {
                 var client = services.GetRequiredService<DiscordSocketClient>();
-
+                
                 // Internal
                 client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-
+                
                 // Load data folders
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
@@ -67,18 +67,10 @@ namespace DirtBot
 
         private Task LogAsync(LogMessage log)
         {
-            if (!(log.Exception is null) && Config.LogTraces)
-            {
-                DashCMD.WriteWarning(log.ToString());
-            }
-            else if (!(log.Exception is null))
-            {
-                DashCMD.WriteWarning(log.ToString(fullException: false));
-            }
-            else
-            {
-                DashCMD.WriteStandard(log.ToString());
-            }
+            StackFrame frame = new StackTrace().GetFrame(1);
+            string source = "Discord Message: " + Logger.GetMethodString(frame.GetMethod());
+            Task logTask = Logger.LogInternal(source: source, message: log.Message, writeFile: true, exception: log.Exception, 
+                foregroundColor: ConsoleColor.White, backgroundColor: ConsoleColor.Black);
             return Task.CompletedTask;
         }
 

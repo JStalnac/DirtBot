@@ -78,7 +78,6 @@ namespace DirtBot.DataBase.FileManagement
         /// <returns></returns>
         public ManagedDirectory GetDirectory(string directoryName)
         {
-            //return new ManagedDirectory(null, null, null);
             foreach (ManagedDirectory directory in Directories)
             {
                 if (directory.DirectoryInfo.Name == directoryName || directory.DirectoryInfo.FullName == directoryName)
@@ -87,6 +86,7 @@ namespace DirtBot.DataBase.FileManagement
                 }
             }
 
+            // Directory not found!
             return new ManagedDirectory(directoryName, null, null);
         }
 
