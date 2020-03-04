@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 
-namespace DirtBot.DataBase.FileManagement
+namespace DirtBot.Database.FileManagement
 {
     public struct ManagedFile : IDisposable
     {

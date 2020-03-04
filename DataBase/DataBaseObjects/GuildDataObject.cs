@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace DirtBot.DataBase.DataBaseObjects
+namespace DirtBot.Database.DatabaseObjects
 {
     public class GuildDataObject : IGuildDataObject
     {

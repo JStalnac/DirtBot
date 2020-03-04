@@ -4,36 +4,44 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Discord.Commands;
 using Discord.WebSocket;
-using DirtBot.DataBase;
-using DirtBot.DataBase.FileManagement;
-using DirtBot.DataBase.DataBaseObjects;
+using DirtBot.Database;
+using DirtBot.Database.FileManagement;
+using DirtBot.Database.DatabaseObjects;
 
 namespace DirtBot.Commands
 {
-    public class PrefixCommand : ModuleBase<SocketCommandContext>
+    public class PrefixCommand : ModuleBase<SocketCommandContext>, IHasDataFile
     {
-        object fileLock = new object();
+        public string FileName { get; } = "prefix.json";
+
+        public CommandData[] Data { get; }
+        public IReadOnlyCollection<CommandData> DataFormat { get; }
 
         [Command("prefix")]
+        [Alias("prefix")]
+        [RequireContext(ContextType.Guild, ErrorMessage = "Et voi vaihtaa prefixiä yksityisviesteissä!")]
         public Task Prefix(string prefix)
         {
-            if (!(Context.Channel is SocketGuildChannel))
+            // Guild channel
+            if (prefix.Length > 12)
             {
-                ReplyAsync("Et voi vaihtaa prefixiä yksityisviesteissä!");
+                ReplyAsync("Prefix voi olla maksimissa vain 12 merkkiä pitkä!");
             }
             else
             {
-                // Guild channel
-                if (prefix.Length > 12)
-                {
-                    ReplyAsync("Prefix voi olla maksimissa vain 12 merkkiä pitkä!");
-                    return Task.CompletedTask;
-                }
-
-                DataBasifier.SetPrefix((Context.Channel as SocketGuildChannel).Guild.Id, prefix);
+                FileStorage.SetPrefix((Context.Channel as SocketGuildChannel).Guild.Id, prefix);
+                ReplyAsync($"Palvelimesi uusi prefix on nyt {prefix}");
             }
-
+            
             return Task.CompletedTask;
+        }
+
+        [Command("prefix")]
+        [Alias("prefix")]
+        public async Task Prefix() 
+        {
+            string prefix = new Caching.Cache()[Context.Message]["Prefix"];
+            ReplyAsync($"Prefixini on '{prefix}'");
         }
     }
 }

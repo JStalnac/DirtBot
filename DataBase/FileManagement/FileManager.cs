@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 
-namespace DirtBot.DataBase.FileManagement
+namespace DirtBot.Database.FileManagement
 {
     public static class FileManager
     {

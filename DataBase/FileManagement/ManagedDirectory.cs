@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections;
 
-namespace DirtBot.DataBase.FileManagement
+namespace DirtBot.Database.FileManagement
 {
     public struct ManagedDirectory : IDisposable, IEnumerable
     {

@@ -9,22 +9,24 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DirtBot.Services;
 using DirtBot.Caching;
-using DirtBot.DataBase;
-using DirtBot.DataBase.FileManagement;
+using DirtBot.Database;
+using DirtBot.Database.FileManagement;
 using System.Diagnostics;
 
 namespace DirtBot
 {
     public class DirtBot
     {
+        public static DiscordSocketClient Client { get; private set; }
+
         public async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
-                var client = services.GetRequiredService<DiscordSocketClient>();
+                Client = services.GetRequiredService<DiscordSocketClient>();
                 
                 // Internal
-                client.Log += LogAsync;
+                Client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
                 
                 // Load data folders
@@ -45,8 +47,8 @@ namespace DirtBot
                 thread.Start();
 
                 // Login
-                await client.LoginAsync(TokenType.Bot, Config.Token);
-                await client.StartAsync();
+                await Client.LoginAsync(TokenType.Bot, Config.Token);
+                await Client.StartAsync();
 
                 // Emojis
                 Emojis emojis = services.GetRequiredService<Emojis>();
@@ -54,11 +56,11 @@ namespace DirtBot
                 // Initializing services
                 services.GetRequiredService<CommandHandlingService>();
                 services.GetRequiredService<Ping>();
-                services.GetRequiredService<Scares>();
-                services.GetRequiredService<FsInTheChat>();
-                services.GetRequiredService<Goodbye>();
-                services.GetRequiredService<Greetings>();
-                services.GetRequiredService<DontPingMe>();
+                //services.GetRequiredService<Scares>();
+                //services.GetRequiredService<FsInTheChat>();
+                //services.GetRequiredService<Goodbye>();
+                //services.GetRequiredService<Greetings>();
+                //services.GetRequiredService<DontPingMe>();
 
                 // Making sure we won't fall off the loop and keep the bot online
                 await Task.Delay(-1);

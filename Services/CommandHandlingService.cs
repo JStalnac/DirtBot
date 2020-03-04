@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DirtBot.DataBase.FileManagement;
-using System.Collections.Generic;
 
 namespace DirtBot.Services
 {
@@ -16,32 +14,42 @@ namespace DirtBot.Services
             InitializeService(services);
             Commands.CommandExecuted += CommandExecutedAsync;
             Client.MessageReceived += MessageReceivedAsync;
-
+            
             Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
         }
 
-        string GetPrefix(SocketMessage message) 
+        public static string GetPrefix(SocketMessage message)
         {
             if (message.Channel is SocketGuildChannel) 
             {
-                return Cache[message]["Prefix"];
+                return new Caching.Cache()[message]["Prefix"];
             }
             else
             {
                 return Config.Prefix;
             }
         }
-
+        
         async Task MessageReceivedAsync(SocketMessage arg)
         {
             // Just a quick log...
             Logger.Log($"Message from {arg.Author}: {arg.Content}", foregroundColor: ConsoleColor.DarkGray);
             
+            // Source filter
             if (arg.Source != MessageSource.User) return;
             SocketUserMessage message = arg as SocketUserMessage;
 
             if (message.Source != MessageSource.User) return;
 
+            // eg. dirt prefix
+            if (message.Content.ToLower().Trim() == $"{Config.Prefix.ToLower()}prefix")
+            {
+                arg.Channel.SendMessageAsync($"Prefixini on '{GetPrefix(arg)}'");
+                // Leave! The PrefixCommand does this too!
+                return;
+            }
+
+            // Command check
             var argPos = 0;
             if (!message.HasStringPrefix(GetPrefix(arg), ref argPos)) return;
 

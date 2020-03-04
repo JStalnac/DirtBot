@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using DirtBot.Caching;
 using DirtBot.Services;
-using DirtBot.DataBase.FileManagement;
-using DirtBot.DataBase.DataBaseObjects;
-using Discord;
+using DirtBot.Database.FileManagement;
+using DirtBot.Database.DatabaseObjects;
 
-namespace DirtBot.DataBase
+namespace DirtBot.Database
 {
     /// <summary>
     /// Adds guilds to our database if they're not in yet.
@@ -72,32 +71,6 @@ namespace DirtBot.DataBase
                 Cache cache = new Cache();
                 cache[message]["Prefix"] = guildData.Prefix;
             }
-        }
-
-        public static void SetPrefix(IMessage message, string prefix)
-        {
-            if (message.Channel is SocketGuildChannel) 
-            {
-                SetPrefix((message.Channel as SocketGuildChannel).Guild.Id, prefix);
-            }
-        }
-
-        public static void SetPrefix(ulong id, string prefix) 
-        {
-            lock (locker)
-            {
-                ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
-                ManagedDirectory guildDirectory = guilds.GetDirectory($"guilds/{id}");
-
-                ManagedFile file = guildDirectory.GetFile("data.json");
-                GuildDataObject guildData = file.ReadJsonData<GuildDataObject>() as GuildDataObject;
-
-                guildData.Prefix = prefix;
-
-                file.WriteJsonData(guildData);
-            }
-
-            new Caching.Cache()[id]["Prefix"] = prefix;
         }
     }
 }

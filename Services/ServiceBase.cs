@@ -16,10 +16,10 @@ namespace DirtBot.Services
     /// </summary>
     public class ServiceBase
     {
-        protected CommandService Commands;
-        protected DiscordSocketClient Client;
-        protected static IServiceProvider Services;
-        protected Emojis Emojis;
+        protected CommandService Commands { get; set; }
+        protected DiscordSocketClient Client { get; set; }
+        protected static IServiceProvider Services { get; set; }
+        protected Emojis Emojis { get; set; }
         private Cache cache;
 
         protected Cache Cache { get => cache;  }
