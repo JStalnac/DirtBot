@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 namespace DirtBot
 {
+    [JsonObject(MemberSerialization = MemberSerialization.OptOut)]
     public struct Config
     {
         [JsonProperty(Required = Required.AllowNull)]
