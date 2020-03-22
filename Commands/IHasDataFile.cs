@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DirtBot.Commands
 {
     public interface IHasDataFile
     {
-        string FileName { get; }
-        CommandData[] Data { get; }
-        IReadOnlyCollection<CommandData> DataFormat { get; }
+        string StaticStorage { get; }
+        string GuildStorage { get; }
+        List<ModuleData> DefaultStaticData { get; }
+        List<ModuleData> DefaultData { get; }
     }
 }

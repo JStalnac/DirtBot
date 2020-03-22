@@ -1,9 +1,9 @@
-﻿using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DirtBot.Services
 {
@@ -14,13 +14,13 @@ namespace DirtBot.Services
             InitializeService(services);
             Commands.CommandExecuted += CommandExecutedAsync;
             Client.MessageReceived += MessageReceivedAsync;
-            
+
             Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
         }
 
         public static string GetPrefix(SocketMessage message)
         {
-            if (message.Channel is SocketGuildChannel) 
+            if (message.Channel is SocketGuildChannel)
             {
                 return new Caching.Cache()[message]["Prefix"];
             }
@@ -29,12 +29,12 @@ namespace DirtBot.Services
                 return Config.Prefix;
             }
         }
-        
+
         async Task MessageReceivedAsync(SocketMessage arg)
         {
             // Just a quick log...
             Logger.Log($"Message from {arg.Author}: {arg.Content}", foregroundColor: ConsoleColor.DarkGray);
-            
+
             // Source filter
             if (arg.Source != MessageSource.User) return;
             SocketUserMessage message = arg as SocketUserMessage;
@@ -48,7 +48,7 @@ namespace DirtBot.Services
                 // Leave! The PrefixCommand does this too!
                 return;
             }
-
+            
             // Command check
             var argPos = 0;
             if (!message.HasStringPrefix(GetPrefix(arg), ref argPos)) return;
@@ -68,7 +68,7 @@ namespace DirtBot.Services
 
             Logger.Log($"Command failed: {result}", true, foregroundColor: ConsoleColor.Yellow);
 
-            if (result.Error == CommandError.BadArgCount) 
+            if (result.Error == CommandError.BadArgCount)
             {
                 await SendMessageIfAllowed("Hupsista! Liian vähän argumentteja!", context.Channel);
             }

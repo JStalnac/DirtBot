@@ -17,12 +17,12 @@ namespace DirtBot
             }
         }
 
-        public Emoji this[string name] 
+        public Emoji this[string name]
         {
             get => GetEmoji(name);
         }
 
-        public Emoji GetEmoji(string name) 
+        public Emoji GetEmoji(string name)
         {
             try
             {

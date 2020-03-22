@@ -1,17 +1,17 @@
-﻿using System;
+﻿using DirtBot.Caching;
+using DirtBot.Database;
+using DirtBot.Database.FileManagement;
+using DirtBot.Services;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using DirtBot.Services;
-using DirtBot.Caching;
-using DirtBot.Database;
-using DirtBot.Database.FileManagement;
-using System.Diagnostics;
 
 namespace DirtBot
 {
@@ -24,11 +24,11 @@ namespace DirtBot
             using (var services = ConfigureServices())
             {
                 Client = services.GetRequiredService<DiscordSocketClient>();
-                
+
                 // Internal
                 Client.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-                
+
                 // Load data folders
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
@@ -71,7 +71,7 @@ namespace DirtBot
         {
             StackFrame frame = new StackTrace().GetFrame(1);
             string source = "Discord Message: " + Logger.GetMethodString(frame.GetMethod());
-            Task logTask = Logger.LogInternal(source: source, message: log.Message, writeFile: true, exception: log.Exception, 
+            Task logTask = Logger.LogInternal(source: source, message: log.Message, writeFile: true, exception: log.Exception,
                 foregroundColor: ConsoleColor.White, backgroundColor: ConsoleColor.Black);
             return Task.CompletedTask;
         }

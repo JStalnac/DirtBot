@@ -5,12 +5,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using SmartFormat;
+using DirtBot.Database.FileManagement;
 
 namespace DirtBot
 {
     public static class Logger
     {
-        static StreamWriter writer;
+        static ManagedFile logFile;
         public static string FileName { get; private set; }
 
         public static string LogMessageFormat { get; set; } = "[{0}]: {1}: {2}";
@@ -21,9 +22,7 @@ namespace DirtBot
                 Directory.CreateDirectory("logs");
 
             FileName = "{Day}_{Month}_{Year}.{Hour}_{Minute}_{Second}.log".FormatSmart(DateTime.Now);
-
-            FileStream fileStream = new FileStream($"logs/{FileName}", FileMode.Create, FileAccess.Write, FileShare.Read);
-            writer = new StreamWriter(fileStream);
+            logFile = new ManagedFile($"logs/{FileName}");
         }
 
         public static void Log(string message, bool writeFile = false, Exception exception = null, ConsoleColor foregroundColor = ConsoleColor.Gray, ConsoleColor backgroundColor = ConsoleColor.Black)
@@ -75,10 +74,7 @@ namespace DirtBot
         private static void WriteLogFileInternal(string source, string message)
         {
             string time = DateTime.Now.ToString();
-
-            writer.Write($"[{time}] {source}: {message.Trim()}");
-            writer.WriteLine();
-            writer.Flush();
+            logFile.AppendAllTextAsync($"[{time}] {source}: {message.Trim()}\n");
         }
 
         public static string GetMethodString(MethodBase method)

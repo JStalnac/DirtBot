@@ -12,7 +12,7 @@ namespace DirtBot.Commands
         [Command("purge")]
         [Alias("purge", "delet")]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
-        public async Task Purge(int limit) 
+        public async Task Purge(int limit, [Remainder]string[] args) 
         {
             var messages = await Context.Channel.GetMessagesAsync(limit: limit).FlattenAsync();
             (Context.Channel as ITextChannel).DeleteMessagesAsync(messages);
@@ -20,7 +20,7 @@ namespace DirtBot.Commands
 
         [Command("purge")]
         [Alias("delet this")]
-        public async Task Purge() 
+        public async Task Purge([Remainder]string[] args) 
         {
             ReplyAsync("Ole hyvä :)");
             Context.Message.DeleteAsync();

@@ -1,21 +1,31 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using DirtBot.Database;
+using DirtBot.Helpers;
 using Discord.Commands;
 using Discord.WebSocket;
-using DirtBot.Database;
-using DirtBot.Database.FileManagement;
-using DirtBot.Database.DatabaseObjects;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DirtBot.Commands
 {
     public class PrefixCommand : ModuleBase<SocketCommandContext>, IHasDataFile
     {
-        public string FileName { get; } = "prefix.json";
+        public string StaticStorage => "prefix.json";
+        public string GuildStorage => "prefix.json";
 
-        public CommandData[] Data { get; }
-        public IReadOnlyCollection<CommandData> DataFormat { get; }
+        public List<ModuleData> DefaultData => new List<ModuleData>()
+        {
+
+        };
+
+        public List<ModuleData> DefaultStaticData => new List<ModuleData>()
+        {
+
+        };
+
+        public PrefixCommand()
+        {
+            
+        }
 
         [Command("prefix")]
         [Alias("prefix")]
@@ -32,13 +42,13 @@ namespace DirtBot.Commands
                 FileStorage.SetPrefix((Context.Channel as SocketGuildChannel).Guild.Id, prefix);
                 ReplyAsync($"Palvelimesi uusi prefix on nyt {prefix}");
             }
-            
+
             return Task.CompletedTask;
         }
 
         [Command("prefix")]
         [Alias("prefix")]
-        public async Task Prefix() 
+        public async Task Prefix()
         {
             string prefix = new Caching.Cache()[Context.Message]["Prefix"];
             ReplyAsync($"Prefixini on '{prefix}'");

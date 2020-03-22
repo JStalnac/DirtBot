@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.IO;
 
 namespace DirtBot
 {
@@ -27,7 +27,7 @@ namespace DirtBot
             new Config().Load();
         }
 
-        void Load() 
+        void Load()
         {
             try
             {

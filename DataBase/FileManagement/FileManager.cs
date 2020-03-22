@@ -1,11 +1,13 @@
-﻿using System.IO;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace DirtBot.Database.FileManagement
 {
     public static class FileManager
     {
-        static Dictionary<string, ManagedDirectory> RegisteredDirectories = new Dictionary<string, ManagedDirectory>();
+        static object locker = new object();
+        static Dictionary<string, ManagedDirectory> registeredDirectories = new Dictionary<string, ManagedDirectory>();
 
         /// <summary>
         /// Loads the files from a directory to a ManagedDirectory.
@@ -14,43 +16,28 @@ namespace DirtBot.Database.FileManagement
         /// <returns></returns>
         public static ManagedDirectory LoadDirectory(string path)
         {
-            if (!Directory.Exists(path))
+            lock (locker)
             {
-                throw new DirectoryNotFoundException($"Unable to load files from '{path}'. That folder does not exist.");
-            }
+                if (!Directory.Exists(path))
+                {
+                    throw new DirectoryNotFoundException($"Unable to load files from '{path}'. That folder does not exist.");
+                }
 
-            List<ManagedFile> files = new List<ManagedFile>();
-            List<ManagedDirectory> directories = new List<ManagedDirectory>();
+                List<ManagedFile> files = new List<ManagedFile>();
+                List<ManagedDirectory> directories = new List<ManagedDirectory>();
 
-            foreach (string filename in Directory.EnumerateFiles(path))
-            {
-                ManagedFile managedFile = new ManagedFile(filename);
-                files.Add(managedFile);
-            }
+                foreach (string filename in Directory.EnumerateFiles(path))
+                {
+                    files.Add(new ManagedFile(filename));
+                }
 
-            foreach (string directoryName in Directory.EnumerateDirectories(path))
-            {
-                ManagedDirectory directory = LoadDirectory(directoryName);
-                directories.Add(directory);
-            }
+                foreach (string directoryName in Directory.EnumerateDirectories(path))
+                {
+                    ManagedDirectory directory = LoadDirectory(directoryName);
+                    directories.Add(directory);
+                }
 
-            return new ManagedDirectory(path, files.ToArray(), directories.ToArray());
-        }
-
-        /// <summary>
-        /// Loads the file from the given location.
-        /// </summary>
-        /// <param name="filepath"></param>
-        /// <returns></returns>
-        public static ManagedFile LoadFile(string filepath)
-        {
-            if (!File.Exists(filepath))
-            {
-                throw new FileNotFoundException($"File '{filepath}' not found!");
-            }
-            else
-            {
-                return new ManagedFile(filepath);
+                return new ManagedDirectory(path, files.ToArray(), directories.ToArray());
             }
         }
 
@@ -71,7 +58,12 @@ namespace DirtBot.Database.FileManagement
         /// <returns></returns>
         public static void RegisterDirectory(string name, ManagedDirectory directory)
         {
-            RegisteredDirectories.Add(name, directory);
+            if (name is null)
+                throw new ArgumentNullException(nameof(name));
+            if (directory is null || directory.Files is null || directory.Directories is null)
+                throw new ArgumentNullException(nameof(directory));
+
+            registeredDirectories.Add(name, directory);
         }
 
         /// <summary>
@@ -81,7 +73,7 @@ namespace DirtBot.Database.FileManagement
         /// <returns></returns>
         public static ManagedDirectory GetRegistedDirectory(string name)
         {
-            ManagedDirectory directory = RegisteredDirectories[name];
+            ManagedDirectory directory = registeredDirectories[name];
             directory.Refresh();
             return directory;
         }

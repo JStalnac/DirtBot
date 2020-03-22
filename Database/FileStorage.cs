@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using DirtBot.Commands;
+using DirtBot.Database.DatabaseObjects;
+using DirtBot.Database.FileManagement;
 using Discord;
 using Discord.WebSocket;
-using DirtBot.Commands;
-using DirtBot.Database.FileManagement;
-using DirtBot.Database.DatabaseObjects;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DirtBot.Database
 {
@@ -52,11 +52,11 @@ namespace DirtBot.Database
                 ManagedDirectory guildDirectory = guilds.GetDirectory($"{id}");
 
                 ManagedFile file = guildDirectory.GetFile("data.json");
-                GuildDataObject guildData = file.ReadJsonData<GuildDataObject>() as GuildDataObject;
-                
+                GuildDataObject guildData = JsonConvert.DeserializeObject(file.ReadAllText()) as GuildDataObject;
+
                 guildData.Prefix = prefix;
 
-                file.WriteJsonData(guildData);
+                file.WriteAllText(JsonConvert.SerializeObject(guildData));
             }
 
             new Caching.Cache()[id]["Prefix"] = prefix;
