@@ -9,16 +9,16 @@ namespace DirtBot.Services
         public Ping(IServiceProvider services)
         {
             InitializeService(services);
-            Discord.MessageReceived += MessageReceivedAsync;
+            Client.MessageReceived += MessageReceivedAsync;
         }
 
-        async Task MessageReceivedAsync(SocketMessage arg)
+        async Task MessageReceivedAsync(SocketMessage message)
         {
-            if (IsSystemMessage(arg, out SocketUserMessage message)) return;
-            if (message.Author.IsBot || message.Author == Discord.CurrentUser) return;
+            if (message.Source != Discord.MessageSource.User || message.Author == Client.CurrentUser) return;
+            if (message.Author.IsBot || message.Author == Client.CurrentUser) return;
 
             if (message.Content.ToLower().StartsWith("ping"))
-                await SendMessageIfAllowed($"Pong! {Emojis.DirtDontPingMe}", message.Channel);
+                await message.Channel.SendMessageAsync($"Pong! {Emojis.DirtDontPingMe}");
         }
     }
 }

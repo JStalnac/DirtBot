@@ -1,57 +1,65 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using DirtBot.Caching;
+using DirtBot.Database;
+using DirtBot.Logging;
+using DirtBot.Services;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
-using Discord;
-using Discord.WebSocket;
-using Discord.Commands;
-using DirtBot.Services;
-using DirtBot.Caching;
-using DirtBot.Logging;
+using System;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace DirtBot
 {
     class DirtBot
     {
+        public static DiscordSocketClient Client { get; private set; }
+
         internal async Task StartAsync()
         {
             using (var services = ConfigureServices())
             {
-                Logger Logger = Logger.GetLogger(this);
-
-                var client = services.GetRequiredService<DiscordSocketClient>();
+                Client = services.GetRequiredService<DiscordSocketClient>();
 
                 // Internal
-                client.Log += LogAsync;
+                Client.Log += LogAsync;
+                Client.Ready += async () =>
+                {
+                    Client.SetGameAsync("Being a good dirt blob");
+                };
+
                 services.GetRequiredService<CommandService>().Log += LogAsync;
 
                 // Cache
                 services.GetRequiredService<Cache>();
-                CacheThread cacheThread = services.GetRequiredService<CacheThread>();
-                services.GetRequiredService<AutoCacher>();
+                services.GetRequiredService<Cacher>();
 
-                Thread thread = new Thread(CacheThread.InitiazeCacheThread);
-                thread.Start(services);
+                //Thread thread = new Thread(Cacher.InitiazeCacheThread);
+                //thread.Start();
 
                 // Database connection check
                 try
                 {
-                    services.GetRequiredService<MySqlConnection>().Open();
-                    await Logger.InfoAsync("Database started!");
+                    DatabaseUtils.OpenConnection().Close();
+                    Logger.Log("Succesfully connected to MySQL database!", true, foregroundColor: ConsoleColor.Cyan);
+                }
+                catch (MySqlException e)
+                {
+                    Logger.Log($"Database connection failed: {e.Message}", true, foregroundColor: ConsoleColor.Red);
+                    Environment.Exit(-1);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Database connection failed: {e.Message}");
+                    Logger.Log($"Database connection failed: {e}", true, foregroundColor: ConsoleColor.Red);
                     Environment.Exit(-1);
                 }
 
                 // Login
-                await client.LoginAsync(TokenType.Bot, Config.Token);
-                await client.StartAsync();
-
-                //client.GetGuild(600592035174416384);
+                await Client.LoginAsync(TokenType.Bot, Config.Token);
+                await Client.StartAsync();
 
                 // Emojis
                 Emojis emojis = services.GetRequiredService<Emojis>();
@@ -59,11 +67,6 @@ namespace DirtBot
                 // Initializing services
                 services.GetRequiredService<CommandHandlingService>();
                 services.GetRequiredService<Ping>();
-                services.GetRequiredService<Scares>();
-                services.GetRequiredService<FsInTheChat>();
-                services.GetRequiredService<Goodbye>();
-                services.GetRequiredService<Greetings>();
-                services.GetRequiredService<DontPingMe>();
 
                 // Making sure we won't fall off the loop and keep the bot online
                 await Task.Delay(-1);
@@ -72,32 +75,33 @@ namespace DirtBot
 
         private Task LogAsync(LogMessage log)
         {
-            Console.WriteLine(log.ToString());
+            StackFrame frame = new StackTrace().GetFrame(1);
+            string source = "Discord Message: " + Logger.GetMethodString(frame.GetMethod());
+            Logger.LogInternal(source: source, message: log.Message, writeFile: true, exception: log.Exception,
+                foregroundColor: ConsoleColor.White, backgroundColor: ConsoleColor.Black);
             return Task.CompletedTask;
         }
 
         private ServiceProvider ConfigureServices()
         {
+            // Socket configuration
+            DiscordSocketConfig config = new DiscordSocketConfig()
+            {
+                ExclusiveBulkDelete = false,
+            };
+
             return new ServiceCollection()
                 // Discord.Net stuff
-                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<CommandService>()
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
-                .AddSingleton<CacheThread>()
-                .AddSingleton<AutoCacher>()
+                .AddSingleton<Cacher>()
                 .AddSingleton<Cache>()
-                .AddSingleton(new MySqlConnection(
-                    $"Server={Config.DatabaseAddress};Database={Config.DatabaseName};Uid={Config.DatabaseUsername};Pwd={Config.DatabasePassword};")) // Creating the MySql connection here
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()
-                .AddSingleton<Scares>()
-                .AddSingleton<FsInTheChat>()
-                .AddSingleton<Goodbye>()
-                .AddSingleton<Greetings>()
-                .AddSingleton<DontPingMe>()
                 // Build
                 .BuildServiceProvider();
         }

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Discord;
+﻿using DirtBot.Logging;
 using Discord.WebSocket;
+using System;
+using System.Threading.Tasks;
 
 namespace DirtBot.Services
 {
@@ -12,12 +10,12 @@ namespace DirtBot.Services
         public OnJoin(IServiceProvider services)
         {
             InitializeService(services);
-            Discord.GuildAvailable += GuildAvailableAsync;
+            Client.GuildAvailable += GuildAvailableAsync;
         }
 
         async Task GuildAvailableAsync(SocketGuild arg)
         {
-            await Logger.InfoAsync($"Guild available: {arg.Name} ({arg.Id})");
+            Logger.Log($"Guild available: {arg.Name} ({arg.Id})", true, foregroundColor: ConsoleColor.White);
         }
     }
 }
