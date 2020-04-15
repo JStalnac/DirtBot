@@ -1,5 +1,4 @@
-﻿using DirtBot.Caching;
-using DirtBot.Database.FileManagement;
+﻿using DirtBot.Database.FileManagement;
 using DirtBot.Logging;
 using DirtBot.Services;
 using Discord;
@@ -61,8 +60,10 @@ namespace DirtBot
 
         private ServiceProvider ConfigureServices()
         {
-            CommandServiceConfig commandConfig = new CommandServiceConfig();
-            commandConfig.DefaultRunMode = RunMode.Async;
+            CommandServiceConfig commandConfig = new CommandServiceConfig
+            {
+                DefaultRunMode = RunMode.Async
+            };
 
             return new ServiceCollection()
                 // Discord.Net stuff
@@ -71,8 +72,6 @@ namespace DirtBot
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
-                .AddSingleton<Cacher>()
-                .AddSingleton<Cache>()
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()

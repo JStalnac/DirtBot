@@ -16,10 +16,7 @@ namespace DirtBot.Services
         protected DiscordSocketClient Client { get; set; }
         protected static IServiceProvider Services { get; set; }
         protected Emojis Emojis { get; set; }
-        private Cache cache;
-
-        protected Cache Cache { get => cache; }
-
+        
         /// <summary>
         /// Call this in the constructor to initialize the service.
         /// </summary>
@@ -28,7 +25,6 @@ namespace DirtBot.Services
         {
             Commands = services.GetRequiredService<CommandService>();
             Client = services.GetRequiredService<DiscordSocketClient>();
-            cache = services.GetRequiredService<Cache>();
             Emojis = services.GetRequiredService<Emojis>();
             Services = services;
 
