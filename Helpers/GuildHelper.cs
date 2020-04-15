@@ -1,5 +1,4 @@
-﻿using DirtBot.Database;
-using DirtBot.Database.FileManagement;
+﻿using DirtBot.Database.FileManagement;
 using Discord;
 
 namespace DirtBot.Helpers
@@ -12,12 +11,31 @@ namespace DirtBot.Helpers
          * I hope I saved myself some precious lifetime!
          */
 
-        public static DataDirectory GetStorage(this IGuild guild)
+        /// <summary>
+        /// Gets the storage directory for this guild. Creates it if it doesn't exist.
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <returns></returns>
+        public static ManagedDirectory GetStorage(this IGuild guild)
         {
-            ManagedDirectory guilds = FileManager.GetRegistedDirectory("Guilds");
-            ManagedDirectory guildDirectory = guilds.GetDirectory(guild.Id.ToString());
+            var guilds = FileManager.GetRegistedDirectory("Guilds");
+            return guilds.CreateSubdirectory(guild.Id.ToString());
+        }
 
-            return new DataDirectory(guild.Id, guildDirectory, guild);
+        /// <summary>
+        /// Gets a storage file by name from this guild's storage directory. Creates it if it doesn't exist.
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static ManagedFile GetStorageFile(this IGuild guild, string name)
+        {
+            var s = GetStorage(guild);
+            if (s.GetFile(name) == null)
+            {
+                s.CreateFile(name);
+            }
+            return s.GetFile(name);
         }
     }
 }

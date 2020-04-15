@@ -152,9 +152,19 @@ namespace DirtBot.Database.FileManagement
 
         /// <summary>
         /// Creates a file to this directory
+        /// Note: This method is deprecated. Use <seealso cref="CreateFile(string)"/>
         /// </summary>
         /// <param name="filename"></param>
         public ManagedFile AddFile(string filename)
+        {
+            return CreateFile(filename);
+        }
+
+        /// <summary>
+        /// Creates a file to this directory
+        /// </summary>
+        /// <param name="filename"></param>
+        public ManagedFile CreateFile(string filename)
         {
             File.Create($"{DirectoryInfo.FullName}/{filename}").Close();
             // Refreshing is important! Without it the new file won't be found!

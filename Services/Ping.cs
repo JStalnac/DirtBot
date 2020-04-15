@@ -18,7 +18,7 @@ namespace DirtBot.Services
             if (message.Author.IsBot || message.Author == Client.CurrentUser) return;
 
             if (message.Content.ToLower().StartsWith("ping"))
-                await SendMessageIfAllowed($"Pong!", message.Channel);
+                await message.Channel.SendMessageAsync($"Pong!");
         }
     }
 }

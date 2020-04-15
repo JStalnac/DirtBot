@@ -1,9 +1,10 @@
-﻿using System;
+﻿using DirtBot.Logging;
+using DirtBot.Services;
+using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Discord.WebSocket;
-using DirtBot.Services;
 
 namespace DirtBot.Caching
 {
@@ -27,7 +28,7 @@ namespace DirtBot.Caching
         {
             if (services is null)
             {
-                Logger.Log($"Cache: Services do not exist!", true, foregroundColor: ConsoleColor.Red);
+                Logger.Log($"Cache: Services do not exist!", true, fore: ConsoleColor.Red);
                 Environment.Exit(1);
             }
 
@@ -41,8 +42,8 @@ namespace DirtBot.Caching
         /// <param name="services"></param>
         public static void InitiazeCacheThread()
         {
-            Logger.Log("Cache starting!", true, foregroundColor: ConsoleColor.Cyan);
-            Logger.Log($"Current update interval: {Config.CacheUpdateInterval}", foregroundColor: ConsoleColor.DarkGray);
+            Logger.Log("Cache starting!", true, fore: ConsoleColor.Cyan);
+            Logger.Log($"Current update interval: {Config.CacheUpdateInterval}", fore: ConsoleColor.DarkGray);
 
             while (true)
             {
@@ -59,13 +60,13 @@ namespace DirtBot.Caching
                         if (cached["Remove"])
                         {
                             TimeSpan timeDifference = currentTime - cached["CreationTime"];
-                            
+
                             // Check if it is time to remove this object. Remove it also if the time is less than our update interval
-                            if (timeDifference.TotalSeconds > cached["RemoveAfter"] || cached["RemoveAfter"] < Config.CacheUpdateInterval / 1000) 
+                            if (timeDifference.TotalSeconds > cached["RemoveAfter"] || cached["RemoveAfter"] < Config.CacheUpdateInterval / 1000)
                             {
                                 Cache.Caches.Remove(key);
                                 // Log...
-                                Logger.Log($"{key} (Name: '{cached["Name"]}') has been removed from cache!", true, foregroundColor: ConsoleColor.White);
+                                Logger.Log($"{key} (Name: '{cached["Name"]}') has been removed from cache!", true, fore: ConsoleColor.White);
                             }
                         }
                         else
@@ -77,7 +78,7 @@ namespace DirtBot.Caching
                     catch (Exception e)
                     {
                         // Oopsie...
-                        Logger.Log($"Cache update failed!", true, exception: e, foregroundColor: ConsoleColor.Red);
+                        Logger.Log($"Cache update failed!", true, exception: e, fore: ConsoleColor.Red);
                     }
                 }
 
@@ -107,11 +108,11 @@ namespace DirtBot.Caching
             // Add to cache
 
             // Check if the guild has been already added...
-            if (Cache.Caches.ContainsKey(guildChannel.Guild.Id.ToString())) 
+            if (Cache.Caches.ContainsKey(guildChannel.Guild.Id.ToString()))
             {
                 // It has. Set the creation time again...
                 Cache[message]["CreationTime"] = DateTime.Now;
-                Logger.Log($"Remove time for '{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been extended!", true, foregroundColor: ConsoleColor.White);
+                Logger.Log($"Remove time for '{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been extended!", true, fore: ConsoleColor.White);
             }
             else
             {
@@ -121,12 +122,12 @@ namespace DirtBot.Caching
                 {
                     Cache[message].Add(key.Key, key.Value);
                 }
-                
+
                 // The time this has been created. Used for removing the cache after a while
                 Cache[message].Add("CreationTime", DateTime.Now);
                 Cache[message].Add("Name", guildChannel.Guild.Name);
 
-                Logger.Log($"'{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been added to cache!", true, foregroundColor: ConsoleColor.White);
+                Logger.Log($"'{guildChannel.Guild.Name}' (ID: {guildChannel.Guild.Id}) has been added to cache!", true, fore: ConsoleColor.White);
             }
         }
     }

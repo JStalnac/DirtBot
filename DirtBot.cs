@@ -1,16 +1,14 @@
 ﻿using DirtBot.Caching;
-using DirtBot.Database;
 using DirtBot.Database.FileManagement;
+using DirtBot.Logging;
 using DirtBot.Services;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DirtBot
@@ -27,24 +25,16 @@ namespace DirtBot
 
                 // Internal
                 Client.Log += LogAsync;
+                Client.Ready += async () =>
+                {
+                    Client.SetGameAsync("Being a good dirt blob");
+                };
+
                 services.GetRequiredService<CommandService>().Log += LogAsync;
 
-                // Load data folders
-                if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds/");
+                // Loading guilds
+                if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
-
-                if (!Directory.Exists("commands/")) Directory.CreateDirectory("commands/");
-                FileManager.RegisterDirectory("Commands", FileManager.LoadDirectory("commands/"));
-
-                // Cache
-                services.GetRequiredService<Cache>();
-                services.GetRequiredService<Cacher>();
-
-                // Database here so that we get the cache before it so we can add the guild to it
-                services.GetRequiredService<DataBasifier>();
-
-                Thread thread = new Thread(Cacher.InitiazeCacheThread);
-                thread.Start();
 
                 // Login
                 await Client.LoginAsync(TokenType.Bot, Config.Token);
@@ -56,23 +46,16 @@ namespace DirtBot
                 // Initializing services
                 services.GetRequiredService<CommandHandlingService>();
                 services.GetRequiredService<Ping>();
-                //services.GetRequiredService<Scares>();
-                //services.GetRequiredService<FsInTheChat>();
-                //services.GetRequiredService<Goodbye>();
-                //services.GetRequiredService<Greetings>();
-                //services.GetRequiredService<DontPingMe>();
 
                 // Making sure we won't fall off the loop and keep the bot online
                 await Task.Delay(-1);
             }
         }
 
+        [LoggerName("Discord")]
         private Task LogAsync(LogMessage log)
         {
-            StackFrame frame = new StackTrace().GetFrame(1);
-            string source = "Discord Message: " + Logger.GetMethodString(frame.GetMethod());
-            Task logTask = Logger.LogInternal(source: source, message: log.Message, writeFile: true, exception: log.Exception,
-                foregroundColor: ConsoleColor.White, backgroundColor: ConsoleColor.Black);
+            Logger.Log(log.Message, true, log.Exception, fore: ConsoleColor.White);
             return Task.CompletedTask;
         }
 
@@ -88,17 +71,11 @@ namespace DirtBot
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
-                .AddSingleton<DataBasifier>()
                 .AddSingleton<Cacher>()
                 .AddSingleton<Cache>()
                 .AddSingleton<Emojis>()
                 // Other services
                 .AddSingleton<Ping>()
-                .AddSingleton<Scares>()
-                .AddSingleton<FsInTheChat>()
-                .AddSingleton<Goodbye>()
-                .AddSingleton<Greetings>()
-                .AddSingleton<DontPingMe>()
                 // Build
                 .BuildServiceProvider();
         }
