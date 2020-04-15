@@ -1,7 +1,6 @@
 ﻿using DirtBot.Logging;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace DirtBot
 {
@@ -34,18 +33,7 @@ namespace DirtBot
             File.AppendAllText(Logger.FileName, restart + "\n");
 
             Logger.Log("Starting! Hello World!");
-
-            Action action = () =>
-            {
-                Logger.Log("dd");
-            };
-
-            Task.Run(() =>
-            {
-                Logger.Log("Hello");
-            }).Wait();
             //new DirtBot().StartAsync().GetAwaiter().GetResult();
         }
     }
-
 }
