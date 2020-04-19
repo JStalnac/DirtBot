@@ -18,6 +18,8 @@ namespace DirtBot
         public static int CacheUpdateInterval { get; private set; } = 20000;
         [JsonProperty(Required = Required.Always)]
         public static bool LogTraces { get; private set; } = true;
+        [JsonProperty(Required = Required.Always)]
+        public static string RedisUrl { get; set; } = "localhost";
 
         [JsonProperty]
         public static List<Emoji> Emotes { get; private set; } = new List<Emoji>() { /* Defaults can be listed here */ };
