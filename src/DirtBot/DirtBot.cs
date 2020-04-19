@@ -6,6 +6,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using StackExchange.Redis;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -35,9 +36,12 @@ namespace DirtBot
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
 
+                services.GetRequiredService<ConnectionMultiplexer>();
+
                 // Login
                 try
                 {
+                    Logger.Log("Logging onto Discord", true, fore: ConsoleColor.White);
                     await Client.LoginAsync(TokenType.Bot, Config.Token);
                 }
                 catch (Discord.Net.HttpException)
@@ -67,6 +71,7 @@ namespace DirtBot
             return Task.CompletedTask;
         }
 
+        [LoggerName("DirtBot Service Manager")]
         private ServiceProvider ConfigureServices()
         {
             CommandServiceConfig commandConfig = new CommandServiceConfig
@@ -82,6 +87,24 @@ namespace DirtBot
                 // Config and internal stuff
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton<Emojis>()
+                .AddSingleton(new Func<ConnectionMultiplexer>(() =>
+                {
+                    // Loading Redis in here
+                    Logger.Log("Logging into Redis...", true, fore: ConsoleColor.White);
+                    ConnectionMultiplexer redis = null;
+                    try
+                    {
+                        redis = ConnectionMultiplexer.Connect(Config.RedisUrl);
+                    }
+                    catch (RedisConnectionException e)
+                    {
+                        Logger.Log("Failed to login to Redis. Check the redis address and the server and try again.", true, exception: e, fore: ConsoleColor.Red);
+                        Logger.WriteLogFile("Terminating");
+                        Environment.Exit(-1);
+                    }
+                    Logger.Log("Succesfully connected to Redis.", true, fore: ConsoleColor.White);
+                    return redis;
+                }).Invoke())
                 // Other services
                 .AddSingleton<Ping>()
                 // Build
