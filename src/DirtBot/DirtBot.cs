@@ -36,7 +36,16 @@ namespace DirtBot
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
 
                 // Login
-                await Client.LoginAsync(TokenType.Bot, Config.Token);
+                try
+                {
+                    await Client.LoginAsync(TokenType.Bot, Config.Token);
+                }
+                catch (Discord.Net.HttpException)
+                {
+                    // Token is invalid
+                    Logger.Log("Invalid token. Terminating", true, fore: ConsoleColor.Red);
+                    Environment.Exit(-1);
+                }
                 await Client.StartAsync();
 
                 // Emojis
