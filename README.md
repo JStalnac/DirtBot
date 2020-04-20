@@ -1,2 +1,2 @@
 # DirtBot
- The unfinished source code for DirtBot
+ The beginnings of the rewritation of my Discord bot, DirtBot
