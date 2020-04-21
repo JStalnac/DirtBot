@@ -17,6 +17,13 @@ namespace DirtBot
                 {
                     Console.WriteLine($"Failed to write to log file. {ex}");
                 }
+                try
+                {
+                    // This is the safe-zone to do all the stuff when the bot goes offline
+                    if (DirtBot.Client != null)
+                        DirtBot.Client.DisconnectAsync();
+                }
+                catch (Exception) { }
             };
 
             string PadCenter(string s, int width, char c)
