@@ -11,7 +11,7 @@ namespace DirtBot
             {
                 try
                 {
-                    File.AppendAllText("log.txt", $"The application has thrown an unhandled exception: {e.ExceptionObject}");
+                    File.AppendAllText("log.txt", $"The application has thrown an unhandled exception: {e.ExceptionObject}\n");
                 }
                 catch (Exception ex)
                 {

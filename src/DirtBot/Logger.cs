@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.EventArgs;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace DirtBot
     public class Logger
     {
         readonly string application;
+        const string datetimeFormat = "yyyy-MM-dd HH:mm:ss zzz";
 
         public Logger(string application)
         {
@@ -29,16 +31,12 @@ namespace DirtBot
 
         public void Write(string message, LogLevel level)
         {
-            string[] lines = SplitLines(message);
-            foreach (string line in lines)
-            {
-                DirtBot.Client.DebugLogger.LogMessage(level, application, line, DateTime.Now);
-            }
-        }
+            if (String.IsNullOrEmpty(message) || String.IsNullOrEmpty(message.Trim()))
+                message = "<None>";
 
-        static string[] SplitLines(string message)
-        {
-            return message.Split("\n");
+            string[] lines = message.Trim().Split("\n");
+            foreach (string line in lines)
+                DirtBot.Client.DebugLogger.LogMessage(level, application, line.Trim(), DateTime.Now);
         }
 
         #region File Logging
@@ -49,11 +47,23 @@ namespace DirtBot
 
         private static Task WriteLogFileInternal(object sender, DebugLogMessageEventArgs e)
         {
+            string prefix = $"[{e.Timestamp.ToString(datetimeFormat)}] [{e.Application}] [{e.Level}] ";
+            var lines = new List<string>(e.Message.Trim().Split("\n"));
+            
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (String.IsNullOrEmpty(lines[i]))
+                {
+                    lines[i] = "<None>";
+                }
+                lines[i] = prefix + lines[i];
+            }
+
             for (int i = 0; i < 1001; i++)
             {
                 try
                 {
-                    File.AppendAllText("log.txt", e.ToString() + "\n");
+                    File.AppendAllLines("log.txt", lines);
                     return Task.CompletedTask;
                 }
                 catch (Exception)
