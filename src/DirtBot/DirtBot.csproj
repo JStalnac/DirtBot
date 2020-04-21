@@ -10,11 +10,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="3.2.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DSharpPlus">
+      <HintPath>..\lib\DSharpPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.CommandsNext">
+      <HintPath>..\lib\DSharpPlus.CommandsNext.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.Interactivity">
+      <HintPath>..\lib\DSharpPlus.Interactivity.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

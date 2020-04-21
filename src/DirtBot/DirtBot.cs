@@ -29,7 +29,7 @@ namespace DirtBot
 
             Client = new DiscordClient(config);
             #endregion
-
+            
             Client.Ready += async (e) =>
             {
                 logger.Info("Ready");
@@ -37,25 +37,23 @@ namespace DirtBot
 
             Client.MessageCreated += async (e) =>
             {
-                logger.Debug($"Message from: {e.Author}@{e.Guild.Name ?? "DM"}#{e.Channel.Name ?? e.Author.Username}:{e.Message.Content}");
+                string username = $"{e.Author.Username}#{e.Author.Discriminator}";
+                string guild = e.Guild is null ? "DM" : e.Guild.Name;
+                logger.Debug($"Message from: {username}@{guild}:{e.Message.Content}");
             };
 
             Client.ClientErrored += async (e) =>
             {
-                var l = new Logger("Exception Logger");
-                try
-                {
-                    l.Error(null, e.Exception);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
+                new Logger("Exception Logger").Error(null, e.Exception);
+            };
+            Client.SocketErrored += async (e) =>
+            {
+                new Logger("Exception Logger").Error(null, e.Exception);
             };
 
             // File logging
             Client.DebugLogger.LogMessageReceived += Logger.DebugLogger_LogMessageReceived;
-
+            
             // Executed when Ctrl+C is pressed. "Get off there!" Makes the bot go offline instantly when it is off
             Console.CancelKeyPress += async (sender, e) =>
             {
