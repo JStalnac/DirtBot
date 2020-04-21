@@ -44,7 +44,6 @@ namespace DirtBot
             {
                 logger.Info("Disconnecting");
                 await Client.DisconnectAsync();
-                logger.Info($"Disconnected");
             };
             #endregion
 
