@@ -28,24 +28,40 @@ namespace DirtBot
             catch (ArgumentNullException) { /* Oh no the token is invalid oh faaa >:) */ }
 
             Client = new DiscordClient(config);
+            #endregion
 
             Client.Ready += async (e) =>
             {
                 logger.Info("Ready");
             };
-            #endregion
 
-            #region Logging
+            Client.MessageCreated += async (e) =>
+            {
+                logger.Debug($"Message from: {e.Author}@{e.Guild.Name ?? "DM"}#{e.Channel.Name ?? e.Author.Username}:{e.Message.Content}");
+            };
+
+            Client.ClientErrored += async (e) =>
+            {
+                var l = new Logger("Exception Logger");
+                try
+                {
+                    l.Error(null, e.Exception);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            };
+
             // File logging
             Client.DebugLogger.LogMessageReceived += Logger.DebugLogger_LogMessageReceived;
 
-            // Executed when Ctrl+C is pressed. "Get off there!"
+            // Executed when Ctrl+C is pressed. "Get off there!" Makes the bot go offline instantly when it is off
             Console.CancelKeyPress += async (sender, e) =>
             {
                 logger.Info("Disconnecting");
                 await Client.DisconnectAsync();
             };
-            #endregion
 
             // Connecting to Discord
             try

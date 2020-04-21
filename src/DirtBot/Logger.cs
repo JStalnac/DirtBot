@@ -24,19 +24,32 @@ namespace DirtBot
         }
 
         public void Info(string message) => Write(message, LogLevel.Info);
+        public void Info(string message, Exception e) => Write(message, LogLevel.Info, e);
         public void Debug(string message) => Write(message, LogLevel.Debug);
+        public void Debug(string message, Exception e) => Write(message, LogLevel.Debug, e);
         public void Warning(string message) => Write(message, LogLevel.Warning);
-        public void Error(string message, Exception e) => Write(message + $" Exception: {e}", LogLevel.Error);
+        public void Warning(string message, Exception e) => Write(message, LogLevel.Warning, e);
+        public void Error(string message) => Write(message, LogLevel.Error);
+        public void Error(string message, Exception e) => Write(message, LogLevel.Error, e);
         public void Critical(string message) => Write(message, LogLevel.Critical);
+        public void Critical(string message, Exception e) => Write(message, LogLevel.Critical, e);
 
-        public void Write(string message, LogLevel level)
+        public void Write(string message, LogLevel level, Exception exception = null)
         {
-            if (String.IsNullOrEmpty(message) || String.IsNullOrEmpty(message.Trim()))
-                message = "<None>";
+            if (message == null || String.IsNullOrEmpty(message.Trim()))
+                if (exception is null)
+                    message = "<None>";
 
-            string[] lines = message.Trim().Split("\n");
+            var lines = new List<string>();
+
+            if (message != null)
+                lines.AddRange(message.Trim().Split("\n"));
+            
+            if (exception != null)
+                lines.AddRange(exception.ToString().Split("\n"));
+            
             foreach (string line in lines)
-                DirtBot.Client.DebugLogger.LogMessage(level, application, line.Trim(), DateTime.Now);
+                DirtBot.Client.DebugLogger.LogMessage(level, application, line, DateTime.Now);
         }
 
         #region File Logging
