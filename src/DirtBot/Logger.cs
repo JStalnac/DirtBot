@@ -44,10 +44,10 @@ namespace DirtBot
 
             if (message != null)
                 lines.AddRange(message.Trim().Split("\n"));
-            
+
             if (exception != null)
                 lines.AddRange(exception.ToString().Split("\n"));
-            
+
             foreach (string line in lines)
                 DirtBot.Client.DebugLogger.LogMessage(level, application, line, DateTime.Now);
         }
@@ -62,7 +62,7 @@ namespace DirtBot
         {
             string prefix = $"[{e.Timestamp.ToString(datetimeFormat)}] [{e.Application}] [{e.Level}] ";
             var lines = new List<string>(e.Message.Trim().Split("\n"));
-            
+
             for (int i = 0; i < lines.Count; i++)
             {
                 if (String.IsNullOrEmpty(lines[i]))
