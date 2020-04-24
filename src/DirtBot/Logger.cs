@@ -36,40 +36,76 @@ namespace DirtBot
 
         public void Write(string message, LogLevel level, Exception exception = null)
         {
-            if (message == null || String.IsNullOrEmpty(message.Trim()))
-                if (exception is null)
-                    message = "<None>";
+            DirtBot.Client.DebugLogger.LogMessage(level, application, message, DateTime.Now, exception);
+        }
 
+        internal static void DebugLogger_LogMessageReceived(object sender, DebugLogMessageEventArgs e)
+        {
+            string message = e.Message;
+            if (message == null || String.IsNullOrEmpty(e.Message.Trim()))
+                if (e.Exception == null)
+                    message = "null";
+
+            message = message.Trim();
             var lines = new List<string>();
 
             if (message != null)
-                lines.AddRange(message.Trim().Split("\n"));
+                lines.AddRange(message.Split("\n"));
 
-            if (exception != null)
-                lines.AddRange(exception.ToString().Split("\n"));
+            if (e.Exception != null)
+                lines.AddRange(e.Exception.ToString().Split("\n"));
+
+            string prefix = $"[{e.Timestamp.ToString(datetimeFormat)}] [{e.Application}] [{e.Level}]";
+
+            WriteLogMessageInternal(lines, e.Level, prefix);
+            WriteLogFileInternal(lines, prefix);
+        }
+
+        private static Task WriteLogMessageInternal(List<string> lines, LogLevel level, string prefix)
+        {
+            ConsoleColor fore = Console.ForegroundColor;
+            ConsoleColor back = Console.BackgroundColor;
+
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    fore = ConsoleColor.DarkGreen;
+                    break;
+
+                case LogLevel.Info:
+                    fore = ConsoleColor.White;
+                    break;
+
+                case LogLevel.Warning:
+                    fore = ConsoleColor.DarkYellow;
+                    break;
+
+                case LogLevel.Error:
+                    fore = ConsoleColor.DarkRed;
+                    break;
+
+                case LogLevel.Critical:
+                    back = ConsoleColor.DarkRed;
+                    fore = ConsoleColor.Black;
+                    break;
+            }
 
             foreach (string line in lines)
-                DirtBot.Client.DebugLogger.LogMessage(level, application, line, DateTime.Now);
+            {
+                Console.ForegroundColor = fore;
+                Console.BackgroundColor = back;
+                Console.Write(prefix);
+                Console.ResetColor();
+                Console.WriteLine(" " + line);
+            }
+            return Task.CompletedTask;
         }
 
-        #region File Logging
-        internal static void DebugLogger_LogMessageReceived(object sender, DebugLogMessageEventArgs e)
+        private static Task WriteLogFileInternal(List<string> lines, string prefix)
         {
-            WriteLogFileInternal(sender, e);
-        }
-
-        private static Task WriteLogFileInternal(object sender, DebugLogMessageEventArgs e)
-        {
-            string prefix = $"[{e.Timestamp.ToString(datetimeFormat)}] [{e.Application}] [{e.Level}] ";
-            var lines = new List<string>(e.Message.Trim().Split("\n"));
-
             for (int i = 0; i < lines.Count; i++)
             {
-                if (String.IsNullOrEmpty(lines[i]))
-                {
-                    lines[i] = "<None>";
-                }
-                lines[i] = prefix + lines[i];
+                lines[i] = $"{prefix} {lines[i].TrimEnd()}";
             }
 
             for (int i = 0; i < 1001; i++)
@@ -88,6 +124,5 @@ namespace DirtBot
             Console.WriteLine($"Logger: Failed to write to log file!");
             return Task.CompletedTask;
         }
-        #endregion
     }
 }
