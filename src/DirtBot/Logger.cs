@@ -11,16 +11,29 @@ namespace DirtBot
     public class Logger
     {
         readonly string application;
+        LogLevel level;
         const string datetimeFormat = "yyyy-MM-dd HH:mm:ss zzz";
 
-        public Logger(string application)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="application">The name the logger will log messages with.</param>
+        /// <param name="level">The minimum <see cref="DSharpPlus.LogLevel"/> that messages will be logged.</param>
+        public Logger(string application, LogLevel level = LogLevel.Info)
         {
             this.application = application;
+            this.level = level;
         }
-
-        public static Logger GetLogger(object obj)
+        
+        /// <summary>
+        /// <see cref="Logger.Logger(string, LogLevel)"/>
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static Logger GetLogger(object obj, LogLevel level = LogLevel.Info)
         {
-            return new Logger(obj.GetType().FullName);
+            return new Logger(obj.GetType().FullName, level);
         }
 
         public void Info(string message) => Write(message, LogLevel.Info);
@@ -36,14 +49,16 @@ namespace DirtBot
 
         public void Write(string message, LogLevel level, Exception exception = null)
         {
-            DirtBot.Client.DebugLogger.LogMessage(level, application, message, DateTime.Now, exception);
+            if (this.level >= level)
+            {
+                DebugLogger_LogMessageReceived(level, application, message, exception, DateTime.Now);
+            }
         }
 
-        internal static void DebugLogger_LogMessageReceived(object sender, DebugLogMessageEventArgs e)
+        internal static void DebugLogger_LogMessageReceived(LogLevel level, string application, string message, Exception exception, DateTime timestamp)
         {
-            string message = e.Message;
-            if (message == null || String.IsNullOrEmpty(e.Message.Trim()))
-                if (e.Exception == null)
+            if (message == null || String.IsNullOrEmpty(message.Trim()))
+                if (exception == null)
                     message = "null";
 
             message = message.Trim();
@@ -52,12 +67,12 @@ namespace DirtBot
             if (message != null)
                 lines.AddRange(message.Split("\n"));
 
-            if (e.Exception != null)
-                lines.AddRange(e.Exception.ToString().Split("\n"));
+            if (exception != null)
+                lines.AddRange(exception.ToString().Split("\n"));
 
-            string prefix = $"[{e.Timestamp.ToString(datetimeFormat)}] [{e.Application}] [{e.Level}]";
+            string prefix = $"[{timestamp.ToString(datetimeFormat)}] [{application}] [{level}]";
 
-            WriteLogMessageInternal(lines, e.Level, prefix);
+            WriteLogMessageInternal(lines, level, prefix);
             WriteLogFileInternal(lines, prefix);
         }
 

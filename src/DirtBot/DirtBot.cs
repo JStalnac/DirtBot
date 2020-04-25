@@ -10,10 +10,13 @@ namespace DirtBot
     public class DirtBot
     {
         public static DiscordClient Client { get; private set; }
-        Logger logger = new Logger("DirtBot");
+        Logger logger;
+        public LogLevel LogLevel { get; } = LogLevel.Debug;
 
         public async Task StartAsync()
         {
+            logger = new Logger("DirtBot", LogLevel);
+            
             #region Client configuration and initialization
             // Here's the bot configuration
             var config = new DiscordConfiguration()
@@ -64,7 +67,12 @@ namespace DirtBot
             };
 
             // File logging
-            Client.DebugLogger.LogMessageReceived += Logger.DebugLogger_LogMessageReceived;
+            //Client.DebugLogger.LogMessageReceived += Logger.DebugLogger_LogMessageReceived;
+            Client.DebugLogger.LogMessageReceived += (sender, e) =>
+            {
+                var l = new Logger(e.Application, LogLevel);
+                l.Debug(e.Message, e.Exception);
+            };
 
             // Connecting to Redis before initializing the modules so that the Ready events can use it
             ConnectionMultiplexer redis = null;
@@ -87,6 +95,7 @@ namespace DirtBot
             var services = new ServiceCollection()
                 .AddSingleton<DiscordClient>()
                 .AddSingleton(redis)
+                .AddSingleton(this)
                 .BuildServiceProvider();
 
             Client.UseCommandsNext(new CommandsNextConfiguration()
