@@ -23,7 +23,7 @@ namespace DirtBot
             {
                 TokenType = TokenType.Bot,
                 UseInternalLogHandler = false,
-                LogLevel = LogLevel.Debug,
+                LogLevel = LogLevel,
             };
 
             // Safely setting the token.
