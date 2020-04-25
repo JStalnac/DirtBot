@@ -61,11 +61,13 @@ namespace DirtBot
                 if (exception == null)
                     message = "null";
 
-            message = message.Trim();
             var lines = new List<string>();
 
             if (message != null)
+            {
+                message = message.Trim();
                 lines.AddRange(message.Split("\n"));
+            }
 
             if (exception != null)
                 lines.AddRange(exception.ToString().Split("\n"));
