@@ -1,17 +1,17 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using System;
 using System.Threading.Tasks;
 
-namespace DirtBot
+namespace DirtBot.Core
 {
     public class CommandHandler
     {
-        public static CommandsNextExtension CommandsNext { get; private set; }
+        readonly IServiceProvider services;
 
-        public CommandHandler(CommandsNextExtension commandsNext)
+        public CommandHandler(IServiceProvider services)
         {
-            if (CommandsNext is null)
-                CommandsNext = commandsNext;
+            this.services = services;
         }
 
         public static async Task<int> GetPrefix(DiscordMessage msg)

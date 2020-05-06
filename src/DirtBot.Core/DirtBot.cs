@@ -3,27 +3,30 @@ using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
-namespace DirtBot
+namespace DirtBot.Core
 {
     public class DirtBot
     {
-        public static DiscordClient Client { get; private set; }
-        Logger logger;
         public LogLevel LogLevel { get; } = LogLevel.Debug;
+        internal DiscordClient Client { get; private set; }
+        Logger logger;
 
         public async Task StartAsync()
         {
             logger = new Logger("DirtBot", LogLevel);
-            
+
             #region Client configuration and initialization
             // Here's the bot configuration
             var config = new DiscordConfiguration()
             {
                 TokenType = TokenType.Bot,
                 UseInternalLogHandler = false,
-                LogLevel = LogLevel,
+                LogLevel = Utilities.LogLevelUtilities.DirtBotToDSharpPlus(LogLevel),
             };
 
             // Safely setting the token.
@@ -55,23 +58,11 @@ namespace DirtBot
                 logger.Debug($"Guild available: '{e.Guild.Name}'");
             };
 
-            // Logs stack traces nicely with the DSharpPlus internal logger :)
-            Client.ClientErrored += async (e) =>
-            {
-                new Logger("Exception Logger").Error(null, e.Exception);
-            };
-
-            Client.SocketErrored += async (e) =>
-            {
-                new Logger("Exception Logger").Error(null, e.Exception);
-            };
-
             // File logging
-            //Client.DebugLogger.LogMessageReceived += Logger.DebugLogger_LogMessageReceived;
             Client.DebugLogger.LogMessageReceived += (sender, e) =>
             {
                 var l = new Logger(e.Application, LogLevel);
-                l.Debug(e.Message, e.Exception);
+                l.Write(e.Message, Utilities.LogLevelUtilities.DSharpPlusToDirtBot(e.Level), e.Exception);
             };
 
             // Connecting to Redis before initializing the modules so that the Ready events can use it
@@ -80,6 +71,7 @@ namespace DirtBot
             {
                 logger.Info("Connecting to Redis");
                 redis = ConnectionMultiplexer.Connect(Config.RedisUrl);
+                logger.Info("Connected to Redis");
             }
             catch (RedisConnectionException ex)
             {
@@ -92,25 +84,47 @@ namespace DirtBot
                 Environment.Exit(-1);
             }
 
+            // Configure services
             var services = new ServiceCollection()
-                .AddSingleton<DiscordClient>()
-                .AddSingleton(redis)
-                .AddSingleton(this)
+                .AddSingleton<ModuleManager>()
+                .AddSingleton<CommandHandler>()
+                .AddSingleton(Client)   // DiscordClient
+                .AddSingleton(redis)    // ConnectionMultiplexer
+                .AddSingleton(this)     // DirtBot
                 .BuildServiceProvider();
 
-            Client.UseCommandsNext(new CommandsNextConfiguration()
+            // Configure CommandsNext
+            var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 PrefixResolver = CommandHandler.GetPrefix,
                 Services = services,
+                UseDefaultCommandHandler = false
             });
 
-            // Executed when Ctrl+C is pressed. "Get off there!" Makes the bot go offline instantly when it is off
-            Console.CancelKeyPress += async (sender, e) =>
-            {
-                logger.Info("Received shutdown signal\nDisconnecting");
-                await Client.DisconnectAsync();
-            };
+            //Load all modules
+            logger.Info("Loading all modules...");
+            var manager = services.GetRequiredService<ModuleManager>();
+            var moduleTypes = new List<Type>();
 
+            // Other modules
+            foreach (var file in Directory.EnumerateFiles("Modules", "*.dll"))
+            {
+                var a = Assembly.LoadFrom(file);
+                moduleTypes.AddRange(manager.LoadAllModules(a));
+                try
+                {
+                    commands.RegisterCommands(a);
+                }
+                catch (Exception ex)
+                {
+                    logger.Critical($"Failed to load commands for assembly {a.Location}.", ex);
+                    Environment.Exit(-1);
+                }
+            }
+
+            manager.InstallAllModules(moduleTypes.ToArray());
+            logger.Info("Loaded all modules!");
+            
             // Connecting to Discord
             try
             {

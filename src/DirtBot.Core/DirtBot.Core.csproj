@@ -1,13 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\.editorconfig" Link=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.3" />
@@ -16,12 +11,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DirtBot.Core\DirtBot.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="DSharpPlus">
       <HintPath>..\lib\DSharpPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.CommandsNext">
+      <HintPath>..\lib\DSharpPlus.CommandsNext.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.Interactivity">
+      <HintPath>..\lib\DSharpPlus.Interactivity.dll</HintPath>
     </Reference>
   </ItemGroup>
 

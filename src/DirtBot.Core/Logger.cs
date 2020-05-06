@@ -1,12 +1,10 @@
-﻿using DSharpPlus;
-using DSharpPlus.EventArgs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DirtBot
+namespace DirtBot.Core
 {
     public class Logger
     {
@@ -24,7 +22,7 @@ namespace DirtBot
             this.application = application;
             this.level = level;
         }
-        
+
         /// <summary>
         /// <see cref="Logger.Logger(string, LogLevel)"/>
         /// </summary>
@@ -51,11 +49,11 @@ namespace DirtBot
         {
             if (this.level >= level)
             {
-                DebugLogger_LogMessageReceived(level, application, message, exception, DateTime.Now);
+                LogInternal(level, application, message, exception, DateTime.Now);
             }
         }
 
-        internal static void DebugLogger_LogMessageReceived(LogLevel level, string application, string message, Exception exception, DateTime timestamp)
+        internal static void LogInternal(LogLevel level, string application, string message, Exception exception, DateTime timestamp)
         {
             if (message == null || String.IsNullOrEmpty(message.Trim()))
                 if (exception == null)
@@ -66,11 +64,11 @@ namespace DirtBot
             if (message != null)
             {
                 message = message.Trim();
-                lines.AddRange(message.Split("\n"));
+                lines.AddRange(message.Split('\n'));
             }
 
             if (exception != null)
-                lines.AddRange(exception.ToString().Split("\n"));
+                lines.AddRange(exception.ToString().Split('\n'));
 
             string prefix = $"[{timestamp.ToString(datetimeFormat)}] [{application}] [{level}]";
 

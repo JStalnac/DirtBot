@@ -7,6 +7,8 @@ namespace DirtBot
     {
         static void Main(string[] args)
         {
+            var bot = new Core.DirtBot();
+
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 try
@@ -17,13 +19,6 @@ namespace DirtBot
                 {
                     Console.WriteLine($"Failed to write to log file. {ex}");
                 }
-                try
-                {
-                    // This is the safe-zone to do all the stuff when the bot goes offline
-                    if (DirtBot.Client != null)
-                        DirtBot.Client.DisconnectAsync();
-                }
-                catch (Exception) { }
             };
 
             string PadCenter(string s, int width, char c)
@@ -38,7 +33,7 @@ namespace DirtBot
             restart = PadCenter(restart, 90, '=');
             File.AppendAllText("log.txt", restart + "\n");
 
-            new DirtBot().StartAsync().GetAwaiter().GetResult();
+            bot.StartAsync().GetAwaiter().GetResult();
         }
     }
 }
