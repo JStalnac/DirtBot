@@ -19,6 +19,7 @@ namespace DirtBot.Core
         public async Task StartAsync()
         {
             logger = new Logger("DirtBot", LogLevel);
+            logger.Info("Starting DirtBot!");
 
             #region Client configuration and initialization
             // Here's the bot configuration
@@ -111,15 +112,6 @@ namespace DirtBot.Core
             {
                 var a = Assembly.LoadFrom(file);
                 moduleTypes.AddRange(manager.LoadAllModules(a));
-                try
-                {
-                    commands.RegisterCommands(a);
-                }
-                catch (Exception ex)
-                {
-                    logger.Critical($"Failed to load commands for assembly {a.Location}.", ex);
-                    Environment.Exit(-1);
-                }
             }
 
             manager.InstallAllModules(moduleTypes.ToArray());

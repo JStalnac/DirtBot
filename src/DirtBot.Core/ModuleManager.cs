@@ -76,10 +76,30 @@ namespace DirtBot.Core
         internal void InstallAllModules(Type[] types)
         {
             var result = new List<Module>();
+            var commands = services.GetRequiredService<DiscordClient>().GetCommandsNext();
+
             foreach (var type in types)
             {
                 try
                 {
+                    try
+                    {
+                        // Add the commands from this type first because
+                        // it is easier to stop duplicates then.
+                        commands.RegisterCommands(type);
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        // The module constructor threw an exception.
+                        log.Warning($"Constructor for type {type.FullName} failed.", ex.InnerException);
+                        continue;
+                    }
+                    catch (ArgumentNullException) { /* The module doesn't have a defined commands */ }
+                    catch (Exception ex)
+                    {
+                        log.Critical($"Failed to load commands for type {type.FullName}", ex);
+                    }
+
                     // Stops new instances of modules from being created if they
                     // already exist in CommandsNext because it creates instances too.
                     var m = AddModule(type);
@@ -91,6 +111,15 @@ namespace DirtBot.Core
                     // The type doesn't have a public contructor.
                     log.Error($"Failed to load module {type.FullName} because it doesn't have a public constructor.");
                     log.Debug(null, ex);
+                }
+                catch (TargetInvocationException ex)
+                {
+                    // The module constructor threw an exception.
+                    log.Warning($"Constructor for type {type.FullName} failed.", ex.InnerException);
+                }
+                catch (Exception ex) 
+                {
+                    log.Critical($"Failed to load module {type.FullName}.", ex);
                 }
             }
             Modules = result.AsReadOnly();

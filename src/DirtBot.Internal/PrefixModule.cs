@@ -15,7 +15,16 @@ namespace DirtBot.Internal
         public PrefixModule(IServiceProvider services) : base(services)
         {
             Log = new Logger("Prefix Manager", DirtBot.LogLevel);
-            Log.Debug("Hello!");
+            
+            Client.Ready += async (e) => 
+            {
+                Log.Info("I'm Ready!");
+            };
+
+            var config = GetConfiguration();
+            config.AddDefaultValue("defaultPrefix", "dirt ");
+            config.Save();
+            Log.Info($"Default prefix: '{config.GetValue("defaultPrefix")}'");
         }
 
         [Command("hello")]

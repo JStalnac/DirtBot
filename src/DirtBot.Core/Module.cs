@@ -11,6 +11,8 @@ namespace DirtBot.Core
 {
     public abstract class Module : BaseCommandModule
     {
+        private Configuration configuration = null;
+
         /// <summary>
         /// The name of this module used internally in Redis etc.
         /// If you want to use same storage with another module use the same name as it.
@@ -116,6 +118,13 @@ namespace DirtBot.Core
             if (guild is null)
                 return null;
             return Redis.GetDatabase(0).WithKeyPrefix($"guilds:{guild.Id}:");
+        }
+
+        public Configuration GetConfiguration()
+        {
+            if (configuration is null)
+                configuration = Configuration.LoadConfiguration($"Modules/{GetType().Assembly.GetName().Name}/{GetType().FullName}/config.yml");
+            return configuration;
         }
 
         /// <summary>
