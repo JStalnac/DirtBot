@@ -1,14 +1,11 @@
-﻿using DirtBot.Core.Utilities;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DirtBot.Core
@@ -100,7 +97,7 @@ namespace DirtBot.Core
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 // Command execution handler
-                PrefixResolver = async (msg) => 
+                PrefixResolver = async (msg) =>
                 {
                     var db = redis.GetDatabase(0) as IDatabaseAsync;
 
@@ -166,7 +163,7 @@ namespace DirtBot.Core
 
             manager.InstallAllModules(moduleTypes.ToArray());
             logger.Info("Loaded all modules!");
-            
+
             // Connecting to Discord
             try
             {
