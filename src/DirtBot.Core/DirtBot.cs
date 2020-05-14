@@ -1,11 +1,14 @@
-﻿using DSharpPlus;
+﻿using DirtBot.Core.Utilities;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DirtBot.Core
@@ -88,7 +91,6 @@ namespace DirtBot.Core
             // Configure services
             var services = new ServiceCollection()
                 .AddSingleton<ModuleManager>()
-                .AddSingleton<CommandHandler>()
                 .AddSingleton(Client)   // DiscordClient
                 .AddSingleton(redis)    // ConnectionMultiplexer
                 .AddSingleton(this)     // DirtBot
@@ -97,15 +99,63 @@ namespace DirtBot.Core
             // Configure CommandsNext
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
-                PrefixResolver = CommandHandler.GetPrefix,
+                // Command execution handler
+                PrefixResolver = async (msg) => 
+                {
+                    var db = redis.GetDatabase(0) as IDatabaseAsync;
+
+                    string prefix = null;
+                    if (!msg.Channel.IsPrivate)
+                        prefix = await db.StringGetAsync($"guilds:{msg.Channel.GuildId}:prefix:prefix");
+
+                    prefix = prefix == null ? Config.Prefix : prefix;
+                    int prefixLenght = CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
+                    return prefixLenght;
+
+                    /* TODO: Implement this. Module disabling
+                    // Get the command that it will be
+                    var cn = Client.GetCommandsNext();
+                    var cmd = cn.FindCommand(msg.Content.Substring(prefixLenght), out var _);
+
+                    // No command
+                    if (cmd is null)
+                        return CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
+
+                    logger.Info(cmd.QualifiedName);
+
+                    // Check if the module is disabled
+                    {
+                        var disabledModules = await db.SetMembersAsync("disabled_modules");
+                        if (disabledModules.Length == 0)
+                            return prefixLenght;
+
+                        var names = disabledModules.ToStringArray();
+
+                        if (EnabledCheckerUtilities.IsEnabled(cmd.Parent, names))
+                        {
+                            return prefixLenght;
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }*/
+                },
                 Services = services,
-                UseDefaultCommandHandler = false
+                EnableDefaultHelp = true
             });
+
+            commands.CommandErrored += async (e) =>
+            {
+                var cmdLog = new Logger("Commands", LogLevel);
+                cmdLog.Warning($"Command failed: {e.Command?.QualifiedName}: {e.Context.Message.Content}", e.Exception);
+            };
 
             //Load all modules
             logger.Info("Loading all modules...");
             var manager = services.GetRequiredService<ModuleManager>();
             var moduleTypes = new List<Type>();
+            moduleTypes.AddRange(manager.LoadAllModules(GetType().Assembly));
 
             // Other modules
             foreach (var file in Directory.EnumerateFiles("Modules", "*.dll"))

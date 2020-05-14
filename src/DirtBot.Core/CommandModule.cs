@@ -1,4 +1,5 @@
 ﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DirtBot.Core
 {
-    public abstract class Module : IModule
+    public abstract class CommandModule : BaseCommandModule, IModule
     {
         private Configuration configuration = null;
 
@@ -58,7 +59,7 @@ namespace DirtBot.Core
         /// Initializes the module.
         /// </summary>
         /// <param name="services"></param>
-        public Module(IServiceProvider services)
+        public CommandModule(IServiceProvider services)
         {
             if (services is null)
                 throw new ArgumentNullException(nameof(services));

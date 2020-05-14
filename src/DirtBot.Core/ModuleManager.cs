@@ -3,14 +3,13 @@ using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace DirtBot.Core
 {
-    internal class ModuleManager
+    public class ModuleManager
     {
-        public IReadOnlyList<Module> Modules { get; private set; }
+        public IReadOnlyList<IModule> Modules { get; private set; }
 
         readonly IServiceProvider services;
         Logger log;
@@ -39,7 +38,7 @@ namespace DirtBot.Core
             foreach (var type in assembly.GetTypes())
             {
                 // TODO: Check this
-                if (typeof(Module).IsAssignableFrom(type))
+                if (typeof(IModule).IsAssignableFrom(type))
                 {
                     // The internal modules are loaded from the current assembly. May be changing
                     if (type == typeof(Module))
@@ -65,7 +64,7 @@ namespace DirtBot.Core
 
             log.Info($"Found {result.Count} module(s) from {assembly.GetName().Name}");
             if (result.Count != 0)
-                log.Info(String.Join(", ", result));
+                log.Debug(String.Join("\n", result));
             return result.ToArray();
         }
 
@@ -75,36 +74,46 @@ namespace DirtBot.Core
         /// <param name="types"></param>
         internal void InstallAllModules(Type[] types)
         {
-            var result = new List<Module>();
+            var result = new List<IModule>();
             var commands = services.GetRequiredService<DiscordClient>().GetCommandsNext();
+            var usedInternalNames = new List<string>();
 
             foreach (var type in types)
             {
+                if (!typeof(IModule).IsAssignableFrom(type))
+                {
+                    log.Warning($"Type {type.FullName} isn't a module!");
+                    continue;
+                }
+
+                if (type.IsNested)
+                {
+                    if (typeof(IModule).IsAssignableFrom(type.DeclaringType))
+                        // It's a submodule
+                        continue;
+
+                    // It's just a regular nested type
+                }
+
                 try
                 {
-                    try
-                    {
-                        // Add the commands from this type first because
-                        // it is easier to stop duplicates then.
+                    // Command module
+                    if (typeof(BaseCommandModule).IsAssignableFrom(type))
                         commands.RegisterCommands(type);
-                    }
-                    catch (TargetInvocationException ex)
+                    // Regular module
+                    else
                     {
-                        // The module constructor threw an exception.
-                        log.Warning($"Constructor for type {type.FullName} failed.", ex.InnerException);
-                        continue;
-                    }
-                    catch (ArgumentNullException) { /* The module doesn't have a defined commands */ }
-                    catch (Exception ex)
-                    {
-                        log.Critical($"Failed to load commands for type {type.FullName}", ex);
-                    }
-
-                    // Stops new instances of modules from being created if they
-                    // already exist in CommandsNext because it creates instances too.
-                    var m = AddModule(type);
-                    if (m != null)
+                        var m = Activator.CreateInstance(type, services) as Module;
+                        if (usedInternalNames.Contains(m.Name))
+                            log.Warning($"The internal name '{m.Name}' is already in use! (module: {type.FullName})");
                         result.Add(m);
+                        usedInternalNames.Add(m.Name);
+                    }
+                }
+                catch (ArgumentNullException)
+                {
+                    // The command module doesn't have any commands defiend :c
+                    log.Warning($"Failed to load commands from module {type.FullName} because it doesn't contain any commands");
                 }
                 catch (MissingMethodException ex)
                 {
@@ -117,32 +126,28 @@ namespace DirtBot.Core
                     // The module constructor threw an exception.
                     log.Warning($"Constructor for type {type.FullName} failed.", ex.InnerException);
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     log.Critical($"Failed to load module {type.FullName}.", ex);
                 }
             }
+
+            // Add the instances of the command modules to our module list too.
+            var usedModules = new List<Type>();
+            foreach (var cmd in commands.RegisteredCommands.Values)
+            {
+                if (usedModules.Contains(cmd.Module.ModuleType))
+                    continue; // The module is already added.
+
+                result.Add(cmd.Module.GetInstance(services) as CommandModule);
+                usedModules.Add(cmd.Module.ModuleType);
+            }
+
+            // TODO: Somehow result has the first element as null
+            // Testing needed
+            result.RemoveAt(0);
+
             Modules = result.AsReadOnly();
-        }
-
-        /// <summary>
-        /// Returns an instance of an module if it hasn't already been added to the Discord client's CommandsNext else returns null.
-        /// </summary>
-        /// <param name="moduleType">A <see cref="Module"/> that will be loaded.</param>
-        /// <returns></returns>
-        internal Module AddModule(Type moduleType)
-        {
-            if (!typeof(Module).IsAssignableFrom(moduleType))
-                throw new ArgumentException($"{nameof(moduleType)} must derive from {nameof(Module)}!");
-
-            var client = services.GetRequiredService<DiscordClient>();
-            var cn = client.GetCommandsNext();
-
-            // Don't add duplicates
-            if (cn.RegisteredCommands.Values.Any(x => x.Module.ModuleType == moduleType))
-                return null;
-
-            return Activator.CreateInstance(moduleType, services) as Module;
         }
         #endregion
     }
