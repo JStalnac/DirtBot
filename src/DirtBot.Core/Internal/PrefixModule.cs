@@ -67,11 +67,5 @@ namespace DirtBot.Internal
                 return;
             await Prefix(ctx, $"{prefix} ");
         }
-
-        [Command("hello")]
-        public async Task Hello(CommandContext ctx)
-        {
-            await ctx.RespondAsync("Hello World! 👋");
-        }
     }
 }
