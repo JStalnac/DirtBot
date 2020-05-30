@@ -1,20 +1,22 @@
-﻿using DirtBot.Services;
+﻿using DirtBot.Modules;
+using DirtBot.Services;
 using Discord.Commands;
 using System.Threading.Tasks;
-using DirtBot.Helpers;
-using DirtBot.Database;
-using System;
-using DirtBot.Logging;
+using DirtBot.Attributes;
 
 namespace DirtBot.Commands
 {
-    public class PrefixCommand : ModuleBase<SocketCommandContext>
+    public class PrefixCommand : Module
     {
+        public override string DisplayName => "Prefix";
+
         [Command("set_prefix")]
         [Alias("prefix")]
         [RequireContext(ContextType.Guild, ErrorMessage = "Et voi vaihtaa prefixiä yksityisviesteissä!")]
         public Task Prefix(string prefix, [Remainder]string args = null)
         {
+            Logging.Logger.Log("PrefixCommand :pog:");
+
             // Guild channel
             if (prefix.Length > 12)
             {
@@ -22,24 +24,7 @@ namespace DirtBot.Commands
             }
             else
             {
-                // C# Binary formatters will handle all other characters (hopefully). No need to escape anything
-                var storage = Context.Guild.GetStorageFile("prefix.bin");
-                // Set the new prefix
-                var data = new DataCollectionBuilder<string, string>()
-                    .Add("prefix", prefix)
-                    .BuildReadOnlyDataCollection();
-                try
-                {
-                    storage.WriteAsBinary(data);
-                    CommandHandlingService.prefixCache.Set(Context.Guild.Id, prefix);
-                }
-                catch (Exception e)
-                {
-                    Logger.Log($"Failed to set prefix for guild {Context.Guild.Id}!", true, e, fore: ConsoleColor.Yellow);
-                    ReplyAsync($"Tapahtui virhe. Ilmoitathan tästä pomolleni.");
-                    return Task.CompletedTask;
-                }
-                ReplyAsync($"Palvelimenne prefix on nyt **'{prefix}'**.");
+                ReplyAsync($"Palvelimenne prefix ei ole nyt **'{prefix}'**.");
             }
 
             if (!(args is null))

@@ -1,30 +1,15 @@
-﻿using DirtBot.Caching;
-using DirtBot.Logging;
-using DirtBot.Helpers;
+﻿using DirtBot.Logging;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.IO;
-using DirtBot.Database;
-using System.Runtime.Serialization;
 
 namespace DirtBot.Services
 {
     public class CommandHandlingService : ServiceBase
     {
-        public static readonly InstanceCache<ulong, string> prefixCache = new InstanceCache<ulong, string>(UpdateType.LastAccess, "Prefixes")
-        {
-            removeAfterSeconds = 300d
-        };
-
-        static ReadOnlyDataCollection<string, string> prefixData = new DataCollectionBuilder<string, string>()
-            .Add("prefix", Config.Prefix)
-            .BuildReadOnlyDataCollection();
-
         public CommandHandlingService(IServiceProvider services)
         {
             InitializeService(services);
@@ -32,6 +17,11 @@ namespace DirtBot.Services
             Client.MessageReceived += MessageReceivedAsync;
 
             Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
+
+            foreach (var m in Commands.Modules)
+            {
+                
+            }
         }
 
         public static string GetPrefix(SocketMessage message)
@@ -45,48 +35,9 @@ namespace DirtBot.Services
         }
         public static string GetPrefix(ulong guildId)
         {
-            try
-            {
-                return prefixCache.Get(guildId);
-            }
-            catch (KeyNotFoundException)
-            {
-                // No cached prefix
-                var guild = DirtBot.Client.GetGuild(guildId);
-                var file = guild.GetStorageFile("prefix.bin");
-                ReadOnlyDataCollection<string, string> data;
-
-                try
-                {
-                    data = file.ReadAsBinary<ReadOnlyDataCollection<string, string>>();
-                }
-                catch (IOException ex)
-                {
-                    Logger.Log($"Failed to read prefix from {file.FileName}", true, ex, fore: ConsoleColor.Yellow);
-                    data = prefixData;
-                }
-                catch (SerializationException ex)
-                {
-                    Logger.Log($"Failed to read prefix from {file.FileName}", true, ex, fore: ConsoleColor.Yellow);
-                    // The file is empty or something
-                    file.WriteAsBinary(prefixData);
-                    data = prefixData;
-                }
-
-                // TODO: Catch this
-                string prefix = data["prefix"];
-                if (String.IsNullOrEmpty(prefix))
-                {
-                    prefix = Config.Prefix;
-                }
-                Logger.WriteLogFile($"Loaded prefix for guild {guildId}. Prefix: '{prefix}'");
-
-                // Cache the prefix
-                prefixCache.Add(guildId, prefix);
-                return prefix;
-            }
+            return Config.Prefix;
         }
-        
+
         async Task MessageReceivedAsync(SocketMessage arg)
         {
             // Just a quick log...

@@ -5,8 +5,8 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using StackExchange.Redis;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,6 +16,8 @@ namespace DirtBot
     public class DirtBot
     {
         public static DiscordSocketClient Client { get; private set; }
+        public static ConnectionMultiplexer Redis { get; private set; }
+        public static IServiceProvider Services { get; private set; }
 
         public async Task StartAsync()
         {
@@ -31,12 +33,12 @@ namespace DirtBot
                 };
 
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-
+                
                 // Loading guilds
                 if (!Directory.Exists("guilds/")) Directory.CreateDirectory("guilds");
                 FileManager.RegisterDirectory("Guilds", FileManager.LoadDirectory("guilds/"));
 
-                services.GetRequiredService<ConnectionMultiplexer>();
+                Redis = services.GetRequiredService<ConnectionMultiplexer>();
 
                 // Login
                 try
@@ -58,6 +60,8 @@ namespace DirtBot
                 // Initializing services
                 services.GetRequiredService<CommandHandlingService>();
                 services.GetRequiredService<Ping>();
+
+                Services = services;
 
                 // Making sure we won't fall off the loop and keep the bot online
                 await Task.Delay(-1);
