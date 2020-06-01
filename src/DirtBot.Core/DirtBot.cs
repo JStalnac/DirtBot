@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
@@ -16,14 +17,22 @@ namespace DirtBot.Core
 {
     public class DirtBot
     {
-        public LogLevel LogLevel { get; } = LogLevel.Debug;
+        public LogLevel LogLevel { get; private set; } = LogLevel.Debug;
         internal DiscordClient Client { get; private set; }
         Logger logger;
 
-        public async Task StartAsync()
+        public async Task StartAsync(string token, string redisUrl = "localhost", LogLevel logLevel = LogLevel.Info, string commandPrefix = "!")
         {
+            LogLevel = logLevel;
+
             logger = new Logger("DirtBot", LogLevel);
             logger.Info("Starting DirtBot!");
+
+            if (String.IsNullOrEmpty(token) || String.IsNullOrWhiteSpace(token))
+            {
+                logger.Critical("Token cannot be null");
+                return;
+            }
 
             #region Client configuration and initialization
             // Here's the bot configuration
@@ -32,14 +41,8 @@ namespace DirtBot.Core
                 TokenType = TokenType.Bot,
                 UseInternalLogHandler = false,
                 LogLevel = Utilities.LogLevelUtilities.DirtBotToDSharpPlus(LogLevel),
+                Token = token
             };
-
-            // Safely setting the token.
-            try
-            {
-                config.Token = Config.Token;
-            }
-            catch (ArgumentNullException) { /* Oh no the token is invalid oh faaa >:) */ }
 
             Client = new DiscordClient(config);
             #endregion
@@ -55,7 +58,7 @@ namespace DirtBot.Core
                 string username = $"{e.Author.Username}#{e.Author.Discriminator}";
                 string guild = e.Guild is null ? "DM" : e.Guild.Name;
                 string channel = e.Channel.Name == "" ? "" : $"#{e.Channel.Name}";
-                logger.Debug($"Message: {username}@{guild}{channel}:{e.Message.Content}");
+                logger.Info($"Message: {username}@{guild}{channel}:{e.Message.Content}");
             };
 
             Client.GuildAvailable += async (e) =>
@@ -75,7 +78,7 @@ namespace DirtBot.Core
             try
             {
                 logger.Info("Connecting to Redis");
-                redis = ConnectionMultiplexer.Connect(Config.RedisUrl);
+                redis = ConnectionMultiplexer.Connect(redisUrl);
                 logger.Info("Connected to Redis");
             }
             catch (RedisConnectionException ex)
@@ -88,6 +91,9 @@ namespace DirtBot.Core
                 logger.Critical("Failed to connect to Redis", ex);
                 Environment.Exit(-1);
             }
+
+            // Interactivity
+            Client.UseInteractivity(new InteractivityConfiguration());
 
             // Configure services
             var services = new ServiceCollection()
@@ -108,7 +114,7 @@ namespace DirtBot.Core
                     if (!msg.Channel.IsPrivate)
                         prefix = await db.StringGetAsync($"guilds:{msg.Channel.GuildId}:prefix:prefix");
 
-                    prefix = prefix == null ? Config.Prefix : prefix;
+                    prefix = prefix == null ? commandPrefix : prefix;
                     int prefixLenght = CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
                     return prefixLenght;
 
@@ -177,13 +183,13 @@ namespace DirtBot.Core
                             errorEmbed.WithDescription("This command must be executed in a guild.");
                             break;
                         }
-                        
+
                         // Permission checks
                         if (checks.FirstOrDefault(x => x is RequireBotPermissionsAttribute) is RequireBotPermissionsAttribute botPerms)
                             errorEmbed.AddField("I need one or more of these permissions", botPerms.Permissions.ToPermissionString());
                         if (checks.FirstOrDefault(x => x is RequireUserPermissionsAttribute) is RequireUserPermissionsAttribute userPerms)
                             errorEmbed.AddField("You need one or more of these permissions", userPerms.Permissions.ToPermissionString());
-                        
+
                         // Required roles
                         if (checks.FirstOrDefault(x => x is RequireRolesAttribute) is RequireRolesAttribute roles)
                             errorEmbed.AddField("You need one of these roles to do that", String.Join(", ", roles.RoleNames));
@@ -211,7 +217,7 @@ namespace DirtBot.Core
                 }
                 else if (e.Exception != null)
                     errorEmbed.WithDescription("Internal error. See log for details");
-                
+
                 if (e.Exception != null)
                     await e.Context.RespondAsync(embed: errorEmbed.Build());
             };

@@ -5,6 +5,10 @@
     <RootNamespace>Tests_and_Examples</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\DirtBot.Core\DirtBot.Core.csproj" />
   </ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DirtBot.Core;
+using System;
 using System.IO;
 
 namespace DirtBot
@@ -33,7 +34,17 @@ namespace DirtBot
             restart = PadCenter(restart, 90, '=');
             File.AppendAllText("log.txt", restart + "\n");
 
-            bot.StartAsync().GetAwaiter().GetResult();
+            var config = Configuration.LoadConfiguration("config.yml");
+            config.AddDefaultValue("token", "");
+            config.AddDefaultValue("redis_url", "localhost");
+            config.AddDefaultValue("prefix", "dirt ");
+            config.Save();
+
+            string token = config.GetValue("token").ToString();
+            string redisUrl = config.GetValue("redis_url").ToString();
+            string prefix = config.GetValue("prefix").ToString();
+
+            bot.StartAsync(token, redisUrl, LogLevel.Debug, commandPrefix: prefix).Wait();
         }
     }
 }
