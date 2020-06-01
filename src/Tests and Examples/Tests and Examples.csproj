@@ -1,12 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Tests_and_Examples</RootNamespace>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +17,5 @@
       <HintPath>..\lib\DSharpPlus.CommandsNext.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;bin\Debug\netstandard2.0\Tests and Examples.dll&quot; &quot;..\DirtBot\bin\Debug\netcoreapp3.1\Modules\Tests and Examples.dll&quot;" />
-  </Target>
 
 </Project>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,6 +7,29 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <!-- 
+  Automatic module copying
+  Copy your module binary here to include it in the Modules folder
+  Include="": The location of the binary (Output)
+  Link="": Location in the Output directory you want the binary to go to
+  Tip: Solution Explorer -> Your Project -> Add -> Existing Item -> Select DLL -> Add As Link
+  Move it to where you want it.
+  -->
+  
+  <!-- Debug mode -->
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <None Include="..\Tests and Examples\bin\Debug\netstandard2.0\Tests and Examples.dll" Link="modules/Tests and Examples.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Release mode -->
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <None Include="..\Tests and Examples\bin\Release\netstandard2.0\Tests and Examples.dll" Link="modules/Tests and Examples.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

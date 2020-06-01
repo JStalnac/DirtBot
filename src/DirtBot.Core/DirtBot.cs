@@ -17,22 +17,34 @@ namespace DirtBot.Core
 {
     public class DirtBot
     {
-        public LogLevel LogLevel { get; private set; } = LogLevel.Debug;
+        public LogLevel LogLevel { get; }
+        public string LogFile { get; }
         internal DiscordClient Client { get; private set; }
         Logger logger;
 
-        public async Task StartAsync(string token, string redisUrl = "localhost", LogLevel logLevel = LogLevel.Info, string commandPrefix = "!")
-        {
-            LogLevel = logLevel;
+        readonly string token;
+        readonly string redisUrl;
+        readonly string commandPrefix;
 
+        public DirtBot(string token, string redisUrl = "localhost", string commandPrefix = "!", LogLevel logLevel = LogLevel.Info, string logFile = "log.txt")
+        {
+            if (String.IsNullOrEmpty(token) || String.IsNullOrWhiteSpace(token))
+                throw new ArgumentNullException("Token cannot be null");
+            if (String.IsNullOrEmpty(logFile) || String.IsNullOrWhiteSpace(logFile))
+                throw new ArgumentException("Invalid log file.");
+
+            this.token = token;
+            this.redisUrl = redisUrl;
+            this.commandPrefix = commandPrefix;
+            LogLevel = logLevel;
+            LogFile = logFile;
+            Logger.SetLogFile(logFile);
+        }
+
+        public async Task StartAsync()
+        {
             logger = new Logger("DirtBot", LogLevel);
             logger.Info("Starting DirtBot!");
-
-            if (String.IsNullOrEmpty(token) || String.IsNullOrWhiteSpace(token))
-            {
-                logger.Critical("Token cannot be null");
-                return;
-            }
 
             #region Client configuration and initialization
             // Here's the bot configuration
@@ -229,7 +241,7 @@ namespace DirtBot.Core
             moduleTypes.AddRange(manager.LoadAllModules(GetType().Assembly));
 
             // Other modules
-            foreach (var file in Directory.EnumerateFiles("Modules", "*.dll"))
+            foreach (var file in Directory.EnumerateFiles("modules", "*.dll"))
             {
                 var a = Assembly.LoadFrom(file);
                 moduleTypes.AddRange(manager.LoadAllModules(a));

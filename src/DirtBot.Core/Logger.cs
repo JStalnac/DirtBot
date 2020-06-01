@@ -10,6 +10,7 @@ namespace DirtBot.Core
     {
         readonly string application;
         LogLevel level;
+        static string logFile;
         const string datetimeFormat = "yyyy-MM-dd HH:mm:ss zzz";
 
         /// <summary>
@@ -22,6 +23,8 @@ namespace DirtBot.Core
             this.application = application;
             this.level = level;
         }
+
+        internal static void SetLogFile(string path) => logFile = path;
 
         /// <summary>
         /// <see cref="Logger.Logger(string, LogLevel)"/>
@@ -49,34 +52,28 @@ namespace DirtBot.Core
         {
             if (this.level >= level)
             {
-                LogInternal(level, application, message, exception, DateTime.Now);
+                if (message == null || String.IsNullOrEmpty(message.Trim()))
+                    if (exception == null)
+                        message = "null";
+
+                var lines = new List<string>();
+
+                if (message != null)
+                {
+                    message = message.Trim();
+                    lines.AddRange(message.Split('\n'));
+                }
+
+                if (exception != null)
+                    lines.AddRange(exception.ToString().Split('\n'));
+
+                string prefix = $"[{DateTime.Now.ToString(datetimeFormat)}] [{application}] [{level}]";
+                WriteLogMessageInternal(lines, level, prefix);
+                Task.Run(() => { WriteLogFileInternal(lines, prefix); });
             }
         }
 
-        internal static void LogInternal(LogLevel level, string application, string message, Exception exception, DateTime timestamp)
-        {
-            if (message == null || String.IsNullOrEmpty(message.Trim()))
-                if (exception == null)
-                    message = "null";
-
-            var lines = new List<string>();
-
-            if (message != null)
-            {
-                message = message.Trim();
-                lines.AddRange(message.Split('\n'));
-            }
-
-            if (exception != null)
-                lines.AddRange(exception.ToString().Split('\n'));
-
-            string prefix = $"[{timestamp.ToString(datetimeFormat)}] [{application}] [{level}]";
-
-            WriteLogMessageInternal(lines, level, prefix);
-            WriteLogFileInternal(lines, prefix);
-        }
-
-        private static Task WriteLogMessageInternal(List<string> lines, LogLevel level, string prefix)
+        private Task WriteLogMessageInternal(List<string> lines, LogLevel level, string prefix)
         {
             ConsoleColor fore = Console.ForegroundColor;
             ConsoleColor back = Console.BackgroundColor;
@@ -116,7 +113,7 @@ namespace DirtBot.Core
             return Task.CompletedTask;
         }
 
-        private static Task WriteLogFileInternal(List<string> lines, string prefix)
+        private Task WriteLogFileInternal(List<string> lines, string prefix)
         {
             for (int i = 0; i < lines.Count; i++)
             {
@@ -127,7 +124,7 @@ namespace DirtBot.Core
             {
                 try
                 {
-                    File.AppendAllLines("log.txt", lines);
+                    File.AppendAllLines(logFile, lines);
                     return Task.CompletedTask;
                 }
                 catch (Exception)

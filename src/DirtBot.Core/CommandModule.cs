@@ -124,7 +124,7 @@ namespace DirtBot.Core
         public Configuration GetConfiguration()
         {
             if (configuration is null)
-                configuration = Configuration.LoadConfiguration($"Modules/config/{Name}/config.yml");
+                configuration = Configuration.LoadConfiguration($"modules/config/{Name}/config.yml");
             return configuration;
         }
 

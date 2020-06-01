@@ -8,13 +8,15 @@ namespace DirtBot
     {
         static void Main(string[] args)
         {
-            var bot = new Core.DirtBot();
+            string logFile = $"logs/{((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds()}.log";
+            Directory.CreateDirectory("logs/");
+            File.Create(logFile).Close();
 
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 try
                 {
-                    File.AppendAllText("log.txt", $"The application has thrown an unhandled exception: {e.ExceptionObject}\n");
+                    File.AppendAllText(logFile, $"The application has thrown an unhandled exception: {e.ExceptionObject}\n");
                 }
                 catch (Exception ex)
                 {
@@ -32,7 +34,7 @@ namespace DirtBot
 
             string restart = " -[ RESTART ]- ";
             restart = PadCenter(restart, 90, '=');
-            File.AppendAllText("log.txt", restart + "\n");
+            File.AppendAllText(logFile, restart + "\n");
 
             var config = Configuration.LoadConfiguration("config.yml");
             config.AddDefaultValue("token", "");
@@ -44,7 +46,9 @@ namespace DirtBot
             string redisUrl = config.GetValue("redis_url").ToString();
             string prefix = config.GetValue("prefix").ToString();
 
-            bot.StartAsync(token, redisUrl, LogLevel.Debug, commandPrefix: prefix).Wait();
+            // For copy paste reasons
+            var bot = new global::DirtBot.Core.DirtBot(token, redisUrl, prefix, LogLevel.Debug, logFile);
+            bot.StartAsync().Wait();
         }
     }
 }
