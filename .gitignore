@@ -4,9 +4,6 @@
 .editorconfig
 Properties/PublishProfiles
 
-# Config files
-config.json
-
 # Builds
 bin/
 obj/
