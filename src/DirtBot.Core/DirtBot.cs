@@ -28,7 +28,7 @@ namespace DirtBot.Core
             config.DiscordConfiguration.UseInternalLogHandler = false;
 
             Client = new DiscordClient(config.DiscordConfiguration);
-            
+
             LogLevel = config.LogLevel;
             LogFile = config.LogFile;
             Logger.SetLogFile(config.LogFile);
