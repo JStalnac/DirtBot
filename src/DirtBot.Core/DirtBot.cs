@@ -84,32 +84,45 @@ namespace DirtBot.Core
                     Environment.Exit(-1);
                 }
             }
+            else
+            {
+                logger.Info("Not connecting to Redis because no connection string was provided.");
+            }
 
             // Interactivity
             Client.UseInteractivity(new InteractivityConfiguration());
 
             // Configure services
-            var services = new ServiceCollection()
+            var sb = new ServiceCollection()
                 .AddSingleton<ModuleManager>()
                 .AddSingleton(Client)   // DiscordClient
-                .AddSingleton(redis)    // ConnectionMultiplexer
-                .AddSingleton(this)     // DirtBot
-                .BuildServiceProvider();
+                .AddSingleton(this);     // DirtBot
+
+            if (redis != null)
+                sb.AddSingleton(redis);    // ConnectionMultiplexer
+
+            var services = sb.BuildServiceProvider();
 
             // Configure CommandsNext
             if (config.PrefixResolverType == PrefixResolverType.Redis)
                 config.CommandsNextConfiguration.PrefixResolver = async (msg) =>
                 {
-                    var db = redis.GetDatabase(0) as IDatabaseAsync;
+                    if (redis != null)
+                    {
+                        var db = redis.GetDatabase(0) as IDatabaseAsync;
 
-                    string prefix = null;
-                    if (!msg.Channel.IsPrivate)
-                        prefix = await db.StringGetAsync($"guilds:{msg.Channel.GuildId}:prefix:prefix");
+                        string prefix = null;
+                        if (!msg.Channel.IsPrivate)
+                            prefix = await db.StringGetAsync($"guilds:{msg.Channel.GuildId}:prefix:prefix");
 
-                    prefix = prefix ?? config.CommandPrefix;
-                    int prefixLenght = CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
-                    return prefixLenght;
-
+                        prefix = prefix ?? config.CommandPrefix;
+                        int prefixLenght = CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
+                        return prefixLenght;
+                    }
+                    else
+                        // No database connected.
+                        return CommandsNextUtilities.GetStringPrefixLength(msg, config.CommandPrefix);
+                    
                     /* TODO: Implement this. Module disabling
                     // Get the command that it will be
                     var cn = Client.GetCommandsNext();
