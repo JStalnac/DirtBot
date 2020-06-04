@@ -17,48 +17,33 @@ namespace DirtBot.Core
         public string LogFile { get; }
         internal DiscordClient Client { get; private set; }
         Logger logger;
+        bool active = false;
+        readonly DirtBotConfiguration config;
 
-        readonly string token;
-        readonly string redisUrl;
-        readonly string commandPrefix;
-
-        public DirtBot(string token, string redisUrl = "localhost", string commandPrefix = "!", LogLevel logLevel = LogLevel.Info, string logFile = "log.txt")
+        public DirtBot(DirtBotConfiguration config)
         {
-            if (String.IsNullOrEmpty(token) || String.IsNullOrWhiteSpace(token))
-                throw new ArgumentNullException("Token cannot be null");
-            if (String.IsNullOrEmpty(logFile) || String.IsNullOrWhiteSpace(logFile))
-                throw new ArgumentException("Invalid log file.");
+            this.config = config;
 
-            this.token = token;
-            this.redisUrl = redisUrl;
-            this.commandPrefix = commandPrefix;
-            LogLevel = logLevel;
-            LogFile = logFile;
-            Logger.SetLogFile(logFile);
+            // Messes up the log if enabled.
+            config.DiscordConfiguration.UseInternalLogHandler = false;
+
+            Client = new DiscordClient(config.DiscordConfiguration);
+            
+            LogLevel = config.LogLevel;
+            LogFile = config.LogFile;
+            Logger.SetLogFile(config.LogFile);
         }
 
         public async Task StartAsync()
         {
+            if (active)
+                throw new InvalidOperationException("This instance is already in use.");
+            active = true;
+
             logger = new Logger("DirtBot", LogLevel);
             logger.Info("Starting DirtBot!");
 
-            #region Client configuration and initialization
-            // Here's the bot configuration
-            var config = new DiscordConfiguration()
-            {
-                TokenType = TokenType.Bot,
-                UseInternalLogHandler = false,
-                LogLevel = Utilities.LogLevelUtilities.DirtBotToDSharpPlus(LogLevel),
-                Token = token
-            };
-
-            Client = new DiscordClient(config);
-            #endregion
-
-            Client.Ready += async (e) =>
-            {
-                logger.Info("Ready");
-            };
+            Client.Ready += async (e) => logger.Info("Ready");
 
             Client.MessageCreated += async (e) =>
             {
@@ -69,35 +54,35 @@ namespace DirtBot.Core
                 logger.Info($"Message: {username}@{guild}{channel}:{e.Message.Content}");
             };
 
-            Client.GuildAvailable += async (e) =>
-            {
-                logger.Debug($"Guild available: '{e.Guild.Name}'");
-            };
+            Client.GuildAvailable += async (e) => logger.Debug($"Guild available: '{e.Guild.Name}'");
 
-            // File logging
+            // DSharpPlus messages
             Client.DebugLogger.LogMessageReceived += (sender, e) =>
             {
                 var l = new Logger(e.Application, LogLevel);
                 l.Write(e.Message, Utilities.LogLevelUtilities.DSharpPlusToDirtBot(e.Level), e.Exception);
             };
 
-            // Connecting to Redis before initializing the modules so that the Ready events can use it
+            // Connecting to Redis before initializing the modules so that the Ready events can use it.
             ConnectionMultiplexer redis = null;
-            try
+            if (!String.IsNullOrEmpty(config.RedisUrl))
             {
-                logger.Info("Connecting to Redis");
-                redis = ConnectionMultiplexer.Connect(redisUrl);
-                logger.Info("Connected to Redis");
-            }
-            catch (RedisConnectionException ex)
-            {
-                logger.Error($"Failed to connect to Redis: {ex.Message}");
-                Environment.Exit(-1);
-            }
-            catch (Exception ex)
-            {
-                logger.Critical("Failed to connect to Redis", ex);
-                Environment.Exit(-1);
+                try
+                {
+                    logger.Info("Connecting to Redis");
+                    redis = ConnectionMultiplexer.Connect(config.RedisUrl);
+                    logger.Info("Connected to Redis");
+                }
+                catch (RedisConnectionException ex)
+                {
+                    logger.Error($"Failed to connect to Redis: {ex.Message}");
+                    Environment.Exit(-1);
+                }
+                catch (Exception ex)
+                {
+                    logger.Critical("Failed to connect to Redis", ex);
+                    Environment.Exit(-1);
+                }
             }
 
             // Interactivity
@@ -112,9 +97,8 @@ namespace DirtBot.Core
                 .BuildServiceProvider();
 
             // Configure CommandsNext
-            var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
-            {
-                PrefixResolver = async (msg) =>
+            if (config.PrefixResolverType == PrefixResolverType.Redis)
+                config.CommandsNextConfiguration.PrefixResolver = async (msg) =>
                 {
                     var db = redis.GetDatabase(0) as IDatabaseAsync;
 
@@ -122,7 +106,7 @@ namespace DirtBot.Core
                     if (!msg.Channel.IsPrivate)
                         prefix = await db.StringGetAsync($"guilds:{msg.Channel.GuildId}:prefix:prefix");
 
-                    prefix = prefix == null ? commandPrefix : prefix;
+                    prefix = prefix ?? config.CommandPrefix;
                     int prefixLenght = CommandsNextUtilities.GetStringPrefixLength(msg, prefix);
                     return prefixLenght;
 
@@ -154,12 +138,11 @@ namespace DirtBot.Core
                             return -1;
                         }
                     }*/
-                },
-                Services = services,
-                EnableDefaultHelp = true
-            });
+                };
 
-            // Command error handler, as you can see
+            config.CommandsNextConfiguration.Services = services;
+            var commands = Client.UseCommandsNext(config.CommandsNextConfiguration);
+
             commands.CommandErrored += async (e) =>
             {
                 var cmdLog = new Logger("Commands", LogLevel);
@@ -179,6 +162,7 @@ namespace DirtBot.Core
                 moduleTypes.AddRange(manager.LoadAllModules(a));
             }
 
+            logger.Info("Initializing modules...");
             manager.InstallAllModules(moduleTypes.ToArray());
             logger.Info("Loaded all modules!");
 
@@ -190,7 +174,6 @@ namespace DirtBot.Core
             }
             catch (Exception e)
             {
-                // This is why we don't want to throw in the prefix setting part.
                 logger.Error("Failed to connect to Discord.", e);
             }
 

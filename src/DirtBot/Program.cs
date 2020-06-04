@@ -47,7 +47,14 @@ namespace DirtBot
             string prefix = config.GetValue("prefix").ToString();
 
             // For copy paste reasons
-            var bot = new global::DirtBot.Core.DirtBot(token, redisUrl, prefix, LogLevel.Debug, logFile);
+            var bot = new global::DirtBot.Core.DirtBot(new DirtBotConfiguration()
+            {
+                CommandPrefix = prefix,
+                Token = token,
+                RedisUrl = redisUrl,
+                LogLevel = DirtBot.Core.LogLevel.Debug,
+                LogFile = logFile
+            });
             bot.StartAsync().Wait();
         }
     }
