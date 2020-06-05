@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity;
 using System;
 
 namespace DirtBot.Core
@@ -21,6 +22,11 @@ namespace DirtBot.Core
         /// Configuration used for CommandsNext.
         /// </summary>
         public CommandsNextConfiguration CommandsNextConfiguration { internal get; set; } = new CommandsNextConfiguration() { };
+
+        /// <summary>
+        /// Configuration used for Interactivity.
+        /// </summary>
+        public InteractivityConfiguration InteractivityConfiguration { internal get; set; } = new InteractivityConfiguration() { };
 
         /// <summary>
         /// Sets the token used for identifying the bot. See <see cref="DiscordConfiguration.Token"/>

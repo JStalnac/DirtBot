@@ -36,4 +36,10 @@
     <ProjectReference Include="..\DirtBot.Core\DirtBot.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="DSharpPlus.CommandsNext">
+      <HintPath>..\lib\DSharpPlus.CommandsNext.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

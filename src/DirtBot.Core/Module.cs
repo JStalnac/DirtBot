@@ -105,7 +105,6 @@ namespace DirtBot.Core
             return GetStorage(guild.Id);
         }
 
-        // TODO: Better naming
         /// <summary>
         /// Gets a database prefixed to the storage root of a guild.
         /// <para></para>
@@ -125,26 +124,6 @@ namespace DirtBot.Core
             if (configuration is null)
                 configuration = Configuration.LoadConfiguration($"modules/config/{Name}/config.yml");
             return configuration;
-        }
-
-        /// <summary>
-        /// Returns True if this module is enabled in the specified guild.
-        /// </summary>
-        /// <param name="guild"></param>
-        /// <returns></returns>
-        protected async Task<bool> IsEnabled(DiscordGuild guild)
-        {
-            var db = GetGuildStorage(guild);
-            var disabledModules = await db.SetMembersAsync("disabled_modules");
-
-            foreach (var s in disabledModules)
-            {
-                if (s == Name)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }

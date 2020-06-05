@@ -1,11 +1,13 @@
-﻿using DSharpPlus;
+﻿using DirtBot.Core.Internal;
+using DirtBot.Internal;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -20,6 +22,12 @@ namespace DirtBot.Core
         bool active = false;
         readonly DirtBotConfiguration config;
 
+        private HashSet<Type> commandModules = new HashSet<Type>();
+        private HashSet<Assembly> commandAssemblies = new HashSet<Assembly>();
+
+        private HashSet<Type> modules = new HashSet<Type>();
+        private HashSet<Assembly> moduleAssemblies = new HashSet<Assembly>();
+
         public DirtBot(DirtBotConfiguration config)
         {
             this.config = config;
@@ -27,11 +35,37 @@ namespace DirtBot.Core
             // Messes up the log if enabled.
             config.DiscordConfiguration.UseInternalLogHandler = false;
 
+            // Client
             Client = new DiscordClient(config.DiscordConfiguration);
 
+            // These will be initialized first
+            AddCommands<PrefixModule>();
+            AddCommands<OwnerModule>();
+
+            // Logging
             LogLevel = config.LogLevel;
             LogFile = config.LogFile;
             Logger.SetLogFile(config.LogFile);
+        }
+
+        public void AddCommands<T>() where T : BaseCommandModule
+        {
+            commandModules.Add(typeof(T));
+        }
+
+        public void AddCommands(Assembly assembly)
+        {
+            commandAssemblies.Add(assembly);
+        }
+
+        public void AddModule<T>() where T : Module
+        {
+            modules.Add(typeof(T));
+        }
+
+        public void AddModules(Assembly assembly)
+        {
+            moduleAssemblies.Add(assembly);
         }
 
         public async Task StartAsync()
@@ -85,12 +119,10 @@ namespace DirtBot.Core
                 }
             }
             else
-            {
                 logger.Info("Not connecting to Redis because no connection string was provided.");
-            }
 
             // Interactivity
-            Client.UseInteractivity(new InteractivityConfiguration());
+            Client.UseInteractivity(config.InteractivityConfiguration);
 
             // Configure services
             var sb = new ServiceCollection()
@@ -122,7 +154,7 @@ namespace DirtBot.Core
                     else
                         // No database connected.
                         return CommandsNextUtilities.GetStringPrefixLength(msg, config.CommandPrefix);
-                    
+
                     /* TODO: Implement this. Module disabling
                     // Get the command that it will be
                     var cn = Client.GetCommandsNext();
@@ -165,18 +197,55 @@ namespace DirtBot.Core
             //Load all modules
             logger.Info("Loading all modules...");
             var manager = services.GetRequiredService<ModuleManager>();
-            var moduleTypes = new List<Type>();
-            moduleTypes.AddRange(manager.LoadAllModules(GetType().Assembly));
 
-            // Other modules
-            foreach (var file in Directory.EnumerateFiles("modules", "*.dll"))
-            {
-                var a = Assembly.LoadFrom(file);
-                moduleTypes.AddRange(manager.LoadAllModules(a));
-            }
+            // Internal
+            foreach (var m in manager.LoadAllModules(GetType().Assembly))
+                modules.Add(m);
+
+            // Others
+            foreach (var a in moduleAssemblies)
+                foreach (var m in manager.LoadAllModules(a))
+                    modules.Add(m);
 
             logger.Info("Initializing modules...");
-            manager.InstallAllModules(moduleTypes.ToArray());
+
+            manager.InstallAllModules(modules.ToArray());
+
+            // Internal commands are added in the constructor.
+            foreach (var ca in commandAssemblies)
+                foreach (var t in ca.GetTypes())
+                    commandModules.Add(t);
+            
+            foreach (var cm in commandModules)
+            {
+                var log = new Logger("Command Loader");
+
+                try
+                {
+                    if (typeof(BaseCommandModule).IsAssignableFrom(cm))
+                        commands.RegisterCommands(cm);
+                }
+                catch (ArgumentNullException)
+                {
+                    log.Warning($"Failed to load commands from {cm.FullName} because it doesn't contain any commands.");
+                }
+                catch (MissingMethodException ex)
+                {
+                    // The type doesn't have a public contructor.
+                    log.Error($"Failed to load commands from {cm.FullName} because it doesn't have a public constructor.");
+                    log.Debug(null, ex);
+                }
+                catch (TargetInvocationException ex)
+                {
+                    // The module constructor threw an exception.
+                    log.Warning($"Constructor for type {cm.FullName} failed.", ex.InnerException);
+                }
+                catch (Exception ex)
+                {
+                    log.Critical($"Failed to load module {cm.FullName}.", ex);
+                }
+            }
+            
             logger.Info("Loaded all modules!");
 
             // Connecting to Discord
@@ -189,8 +258,6 @@ namespace DirtBot.Core
             {
                 logger.Error("Failed to connect to Discord.", e);
             }
-
-            await Task.Delay(-1);
         }
     }
 }

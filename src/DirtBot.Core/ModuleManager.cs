@@ -1,6 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -38,13 +36,13 @@ namespace DirtBot.Core
             foreach (var type in assembly.GetTypes())
             {
                 // TODO: Check this
-                if (typeof(IModule).IsAssignableFrom(type))
+                if (typeof(Module).IsAssignableFrom(type))
                 {
                     // The internal modules are loaded from the current assembly. May be changing
                     if (type == typeof(Module))
                         continue;
 
-                    // No abstract types please
+                    // No abstract types or interfaces please
                     if (type.IsAbstract)
                     {
                         log.Warning($"Type {type.FullName} was not loaded because it is abstract");
@@ -69,18 +67,17 @@ namespace DirtBot.Core
         }
 
         /// <summary>
-        /// Installs all modules from an array. Will replace the existing <see cref="ModuleManager.Modules"/>
+        /// Installs all modules from an array. Replaces the existing <see cref="Modules"/>
         /// </summary>
         /// <param name="types"></param>
         internal void InstallAllModules(Type[] types)
         {
             var result = new List<IModule>();
-            var commands = services.GetRequiredService<DiscordClient>().GetCommandsNext();
             var usedInternalNames = new List<string>();
 
             foreach (var type in types)
             {
-                if (!typeof(IModule).IsAssignableFrom(type))
+                if (!typeof(Module).IsAssignableFrom(type))
                 {
                     log.Warning($"Type {type.FullName} isn't a module!");
                     continue;
@@ -88,7 +85,7 @@ namespace DirtBot.Core
 
                 if (type.IsNested)
                 {
-                    if (typeof(IModule).IsAssignableFrom(type.DeclaringType))
+                    if (typeof(Module).IsAssignableFrom(type.DeclaringType))
                         // It's a submodule
                         continue;
 
@@ -97,23 +94,20 @@ namespace DirtBot.Core
 
                 try
                 {
-                    // Command module
-                    if (typeof(BaseCommandModule).IsAssignableFrom(type))
-                        commands.RegisterCommands(type);
-                    // Regular module
-                    else
+                    var m = Activator.CreateInstance(type, services) as Module;
+                    if (String.IsNullOrEmpty(m.Name) || String.IsNullOrEmpty(m.DisplayName))
                     {
-                        var m = Activator.CreateInstance(type, services) as Module;
-                        if (usedInternalNames.Contains(m.Name))
-                            log.Warning($"The internal name '{m.Name}' is already in use! (module: {type.FullName})");
-                        result.Add(m);
-                        usedInternalNames.Add(m.Name);
+                        log.Warning($"Module {type.FullName} doesn't have a name!");
+                        continue;
                     }
+                    if (usedInternalNames.Contains(m.Name))
+                        log.Warning($"The internal name '{m.Name}' is already in use! (module: {type.FullName})");
+                    result.Add(m);
+                    usedInternalNames.Add(m.Name);
                 }
-                catch (ArgumentNullException)
+                catch (NotImplementedException)
                 {
-                    // The command module doesn't have any commands defiend :c
-                    log.Warning($"Failed to load commands from module {type.FullName} because it doesn't contain any commands");
+                    log.Warning($"Module {type.FullName} doesn't have a name!");
                 }
                 catch (MissingMethodException ex)
                 {
@@ -132,19 +126,7 @@ namespace DirtBot.Core
                 }
             }
 
-            // Add the instances of the command modules to our module list too.
-            var usedModules = new List<Type>();
-            foreach (var cmd in commands.RegisteredCommands.Values)
-            {
-                if (usedModules.Contains(cmd.Module.ModuleType))
-                    continue; // The module is already added.
-
-                result.Add(cmd.Module.GetInstance(services) as CommandModule);
-                usedModules.Add(cmd.Module.ModuleType);
-            }
-
-            // TODO: Somehow result has the first element as null
-            // Testing needed
+            // The first element is always null somehow.
             result.RemoveAt(0);
 
             Modules = result.AsReadOnly();

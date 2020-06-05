@@ -1,12 +1,15 @@
 ﻿using DirtBot.Core;
+using DSharpPlus.CommandsNext;
 using System;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DirtBot
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             string logFile = $"logs/{((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds()}.log";
             Directory.CreateDirectory("logs/");
@@ -52,10 +55,19 @@ namespace DirtBot
                 CommandPrefix = prefix,
                 Token = token,
                 RedisUrl = redisUrl,
-                LogLevel = DirtBot.Core.LogLevel.Debug,
-                LogFile = logFile
+                LogLevel = DirtBot.Core.LogLevel.Info,
+                LogFile = logFile,
             });
-            bot.StartAsync().Wait();
+
+            foreach (var file in Directory.EnumerateFiles("modules/", "*.dll"))
+            {
+                var a = Assembly.LoadFrom(file);
+                bot.AddCommands(a);
+                bot.AddModules(a);
+            }
+            
+            await bot.StartAsync();
+            await Task.Delay(-1);
         }
     }
 }

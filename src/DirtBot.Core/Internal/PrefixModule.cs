@@ -1,30 +1,25 @@
 ﻿using DirtBot.Core;
-using DirtBot.Core.Attributes;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
 using System.Threading.Tasks;
 
 namespace DirtBot.Internal
 {
-    [Required]
-    public class PrefixModule : CommandModule
+    public class PrefixModule
     {
-        public override string DisplayName => "Prefix";
-
-        public override string Name => "prefix";
-
         string defaultPrefix = "dirt ";
 
-        public PrefixModule(IServiceProvider services) : base(services)
+        public PrefixModule(IServiceProvider services)
         {
-            Log = new Logger("Prefix Manager", DirtBot.LogLevel);
+            var bot = services.GetRequiredService<Core.DirtBot>();
 
-            var config = GetConfiguration();
+            var config = Configuration.LoadConfiguration("modules/config/prefix/config.yml");
             config.AddDefaultValue("defaultPrefix", "dirt ");
             config.Save();
-            Log.Info($"Default prefix: '{config.GetValue("defaultPrefix")}'");
+            new Logger("Prefix Manager", bot.LogLevel).Info($"Default prefix: '{config.GetValue("defaultPrefix")}'");
             defaultPrefix = config.GetValue("defaultPrefix") as string;
         }
 
@@ -40,7 +35,7 @@ namespace DirtBot.Internal
                     return;
                 }
 
-                var db = GetStorage(ctx.Guild) as IDatabaseAsync;
+                var db = ctx.GetStorage("prefix") as IDatabaseAsync;
                 string guildPrefix = await db.StringGetAsync("prefix");
                 guildPrefix = guildPrefix == null ? defaultPrefix : guildPrefix;
 
@@ -54,7 +49,7 @@ namespace DirtBot.Internal
                     return;
                 }
 
-                var db = GetStorage(ctx.Guild) as IDatabaseAsync;
+                var db = ctx.GetStorage("prefix") as IDatabaseAsync;
                 await db.StringSetAsync("prefix", prefix, flags: CommandFlags.FireAndForget);
                 await ctx.RespondAsync($"The server's prefix is now `{prefix}`");
             }

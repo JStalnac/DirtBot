@@ -19,6 +19,8 @@ namespace Tests_and_Examples
         {
             Log = new Logger("Command Logger", DirtBot.LogLevel);
 
+            Client.GetCommandsNext().SetHelpFormatter<HelpCommand>();
+
             Client.GetCommandsNext().CommandErrored += async (e) =>
             {
                 var errorEmbed = new DiscordEmbedBuilder()
