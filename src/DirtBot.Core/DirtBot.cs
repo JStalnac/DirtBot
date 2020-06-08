@@ -1,5 +1,4 @@
-﻿using DirtBot.Core.Internal;
-using DirtBot.Internal;
+﻿using DirtBot.Internal;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 
 namespace DirtBot.Core
 {
@@ -40,7 +40,6 @@ namespace DirtBot.Core
 
             // These will be initialized first
             AddCommands<PrefixModule>();
-            AddCommands<OwnerModule>();
 
             // Logging
             LogLevel = config.LogLevel;
@@ -121,6 +120,30 @@ namespace DirtBot.Core
             else
                 logger.Info("Not connecting to Redis because no connection string was provided.");
 
+            MySqlConnection mysql = null;
+            if (!String.IsNullOrEmpty(config.MySqlUrl))
+            {
+                try
+                {
+                    logger.Info("Connecting to MySql database");
+                    mysql = new MySqlConnection(config.MySqlUrl);
+                    mysql.Open();
+                    logger.Info("Connected to MySql database");
+                }
+                catch (MySqlException ex)
+                {
+                    logger.Error($"Failed to connect to MySql: {ex.Message}");
+                    Environment.Exit(-1);
+                }
+                catch (Exception ex)
+                {
+                    logger.Critical("Failed to connect to MySql", ex);
+                    Environment.Exit(-1);
+                }
+            }
+            else
+                logger.Info("Not connecting to MySql because no connection string was provided.");
+
             // Interactivity
             Client.UseInteractivity(config.InteractivityConfiguration);
 
@@ -131,7 +154,10 @@ namespace DirtBot.Core
                 .AddSingleton(this);     // DirtBot
 
             if (redis != null)
-                sb.AddSingleton(redis);    // ConnectionMultiplexer
+                sb.AddSingleton(redis);     // ConnectionMultiplexer
+
+            if (mysql != null)
+                sb.AddSingleton(mysql);     // MySqlConnection
 
             var services = sb.BuildServiceProvider();
 
@@ -215,7 +241,7 @@ namespace DirtBot.Core
             foreach (var ca in commandAssemblies)
                 foreach (var t in ca.GetTypes())
                     commandModules.Add(t);
-            
+
             foreach (var cm in commandModules)
             {
                 var log = new Logger("Command Loader");
@@ -245,7 +271,7 @@ namespace DirtBot.Core
                     log.Critical($"Failed to load module {cm.FullName}.", ex);
                 }
             }
-            
+
             logger.Info("Loaded all modules!");
 
             // Connecting to Discord

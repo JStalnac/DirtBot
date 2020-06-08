@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
+using MySql.Data.MySqlClient;
 using StackExchange.Redis;
 using StackExchange.Redis.KeyspaceIsolation;
 using System;
@@ -31,7 +32,7 @@ namespace DirtBot.Core
         public static Logger GetLogger(this CommandContext ctx, string application) => new Logger(application, GetDirtBot(ctx).LogLevel);
         
         /// <summary>
-        /// Redis connection
+        /// Gets a Redis connection.
         /// </summary>
         public static ConnectionMultiplexer GetRedis(this CommandContext ctx)
         {
@@ -41,6 +42,26 @@ namespace DirtBot.Core
             return redis;
         }
 
+        /// <summary>
+        /// Gets a MySql connection.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static MySqlConnection GetMySql(this CommandContext ctx)
+        {
+            var mysql = ctx.Services.GetService<MySqlConnection>();
+            if (mysql is null)
+                throw new InvalidOperationException("MySql is not connected.");
+            return mysql;
+        }
+
+        /// <summary>
+        /// Gets a command for MySql.
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        public static MySqlCommand GetMySqlCommand(this CommandContext ctx) => ctx.GetMySql().CreateCommand();
+        
         /// <summary>
         /// Gets a database prefixed to the the storage of this module.
         /// <para></para>

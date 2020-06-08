@@ -42,12 +42,14 @@ namespace DirtBot
             var config = Configuration.LoadConfiguration("config.yml");
             config.AddDefaultValue("token", "");
             config.AddDefaultValue("redis_url", "localhost");
+            config.AddDefaultValue("mysql_url", "");
             config.AddDefaultValue("prefix", "dirt ");
             config.Save();
 
-            string token = config.GetValue("token").ToString();
-            string redisUrl = config.GetValue("redis_url").ToString();
-            string prefix = config.GetValue("prefix").ToString();
+            string token = config.GetValue("token") as string;
+            string redisUrl = config.GetValue("redis_url") as string;
+            string mysqlUrl = config.GetValue("mysql_url") as string;
+            string prefix = config.GetValue("prefix") as string;
 
             // For copy paste reasons
             var bot = new global::DirtBot.Core.DirtBot(new DirtBotConfiguration()
@@ -55,6 +57,7 @@ namespace DirtBot
                 CommandPrefix = prefix,
                 Token = token,
                 RedisUrl = redisUrl,
+                MySqlUrl = mysqlUrl,
                 LogLevel = DirtBot.Core.LogLevel.Info,
                 LogFile = logFile,
             });

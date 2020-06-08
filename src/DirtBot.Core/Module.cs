@@ -1,11 +1,11 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
+using MySql.Data.MySqlClient;
 using StackExchange.Redis;
 using StackExchange.Redis.KeyspaceIsolation;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DirtBot.Core
 {
@@ -47,7 +47,36 @@ namespace DirtBot.Core
         /// <summary>
         /// Redis connection
         /// </summary>
-        protected ConnectionMultiplexer Redis { get => Services.GetRequiredService<ConnectionMultiplexer>(); }
+        protected ConnectionMultiplexer Redis
+        {
+            get
+            {
+                var mysql = Services.GetService<ConnectionMultiplexer>();
+                if (mysql is null)
+                    throw new InvalidOperationException("Redis is not connected.");
+                return mysql;
+            }
+        }
+
+        /// <summary>
+        /// MySql connection
+        /// </summary>
+        protected MySqlConnection MySql
+        {
+            get
+            {
+                var mysql = Services.GetService<MySqlConnection>();
+                if (mysql is null)
+                    throw new InvalidOperationException("MySql is not connected.");
+                return mysql;
+            }
+        }
+
+        /// <summary>
+        /// Gets a MySql command.
+        /// </summary>
+        /// <returns></returns>
+        protected MySqlCommand GetMySqlCommand() => MySql.CreateCommand();
 
         /// <summary>
         /// DirtBot services.

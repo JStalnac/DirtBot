@@ -79,6 +79,11 @@ namespace DirtBot.Core
         public string RedisUrl { internal get; set; } = "";
 
         /// <summary>
+        /// Sets the connection string for MySql. Leave empty for no connecting.
+        /// </summary>
+        public string MySqlUrl { internal get; set; } = "";
+
+        /// <summary>
         /// Sets the prefix resolver used. See <see cref="Core.PrefixResolverType"/>
         /// </summary>
         public PrefixResolverType PrefixResolverType { internal get; set; } = PrefixResolverType.Redis;
@@ -96,6 +101,10 @@ namespace DirtBot.Core
         /// <summary>
         /// Default prefix resolver using Redis.
         /// </summary>
-        Redis
+        Redis,
+        /// <summary>
+        /// Default prefix resolver using MySql.
+        /// </summary>
+        MySql
     }
 }

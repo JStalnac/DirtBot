@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DirtBot.Internal
 {
-    public class PrefixModule
+    public class PrefixModule : BaseCommandModule
     {
         string defaultPrefix = "dirt ";
 

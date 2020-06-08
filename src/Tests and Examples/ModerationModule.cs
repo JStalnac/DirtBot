@@ -10,16 +10,8 @@ using System.Threading.Tasks;
 
 namespace Tests_and_Examples
 {
-    public class ModerationModule : CommandModule
+    public class ModerationModule
     {
-        // Internal name
-        public override string Name => "moderation";
-
-        public override string DisplayName => "Moderation";
-
-        // DirtBot services
-        public ModerationModule(IServiceProvider services) : base(services) { }
-
         // Commands
         #region Kick
         [Command("kick")]
@@ -30,7 +22,7 @@ namespace Tests_and_Examples
         public async Task KickCommand(CommandContext ctx, [Description("The user to kick.")] DiscordMember user, [RemainingText, Description("Reason this user was kicked.")] string reason = "No reason given :c")
         {
             // Save this event
-            var db = GetStorage(ctx.Guild) as IDatabaseAsync;
+            var db = ctx.GetStorage("moderation") as IDatabaseAsync;
 
             // Get a case ID
             long caseId = await db.StringIncrementAsync("cases");
@@ -73,7 +65,7 @@ namespace Tests_and_Examples
         public async Task BanCommand(CommandContext ctx, [Description("The user to ban.")] DiscordMember user, [RemainingText, Description("Reason this user was banned.")] string reason = "No reason given :c")
         {
             // Save this event
-            var db = GetStorage(ctx.Guild) as IDatabaseAsync;
+            var db = ctx.GetStorage("moderation") as IDatabaseAsync;
 
             // Get a case ID
             long caseId = await db.StringIncrementAsync("cases");
@@ -115,7 +107,7 @@ namespace Tests_and_Examples
         [RequireUserPermissions(Permissions.Administrator | Permissions.KickMembers | Permissions.MuteMembers | Permissions.BanMembers | Permissions.ManageGuild)]
         public async Task WarnMemberCommand(CommandContext ctx, [Description("User to warn.")] DiscordUser user, [RemainingText, Description("Reason this warning was given.")] string reason = "No reason given :c")
         {
-            var db = GetStorage(ctx.Guild) as IDatabaseAsync;
+            var db = ctx.GetStorage("moderation") as IDatabaseAsync;
 
             // Get a case ID
             long caseId = await db.StringIncrementAsync("cases");
