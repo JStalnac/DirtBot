@@ -127,7 +127,8 @@ namespace DirtBot.Core
             }
 
             // The first element is always null somehow.
-            result.RemoveAt(0);
+            if (result.Any())
+                result.RemoveAt(0);
 
             Modules = result.AsReadOnly();
         }
