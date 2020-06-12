@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using StackExchange.Redis.KeyspaceIsolation;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DirtBot.Core
 {
@@ -49,19 +50,19 @@ namespace DirtBot.Core
         /// <returns></returns>
         public static MySqlConnection GetMySql(this CommandContext ctx)
         {
-            var mysql = ctx.Services.GetService<MySqlConnection>();
-            if (mysql is null)
+            string connectionString = ctx.GetDirtBot().config.MySqlUrl;
+            if (String.IsNullOrEmpty(connectionString))
                 throw new InvalidOperationException("MySql is not connected.");
+            var mysql = new MySqlConnection(connectionString);
+            mysql.Open();
             return mysql;
         }
 
-        /// <summary>
-        /// Gets a command for MySql.
-        /// </summary>
-        /// <param name="ctx"></param>
-        /// <returns></returns>
-        public static MySqlCommand GetMySqlCommand(this CommandContext ctx) => ctx.GetMySql().CreateCommand();
-        
+        public static async Task<MySqlConnection> GetMySqlAsync(this CommandContext ctx)
+        {
+            return ctx.GetMySql();
+        }
+
         /// <summary>
         /// Gets a database prefixed to the the storage of this module.
         /// <para></para>

@@ -20,7 +20,7 @@ namespace DirtBot.Core
         internal DiscordClient Client { get; private set; }
         Logger logger;
         bool active = false;
-        readonly DirtBotConfiguration config;
+        internal readonly DirtBotConfiguration config;
 
         private HashSet<Type> commandModules = new HashSet<Type>();
         private HashSet<Assembly> commandAssemblies = new HashSet<Assembly>();
@@ -96,7 +96,7 @@ namespace DirtBot.Core
                 l.Write(e.Message, Utilities.LogLevelUtilities.DSharpPlusToDirtBot(e.Level), e.Exception);
             };
 
-            // Connecting to Redis before initializing the modules so that the Ready events can use it.
+            // Connecting to databases before initializing the modules so that the Ready events can use it.
             ConnectionMultiplexer redis = null;
             if (!String.IsNullOrEmpty(config.RedisUrl))
             {
@@ -120,13 +120,13 @@ namespace DirtBot.Core
             else
                 logger.Info("Not connecting to Redis because no connection string was provided.");
 
-            MySqlConnection mysql = null;
+            // Check that MySql works
             if (!String.IsNullOrEmpty(config.MySqlUrl))
             {
                 try
                 {
                     logger.Info("Connecting to MySql database");
-                    mysql = new MySqlConnection(config.MySqlUrl);
+                    var mysql = new MySqlConnection(config.MySqlUrl);
                     mysql.Open();
                     logger.Info("Connected to MySql database");
                 }
@@ -155,9 +155,6 @@ namespace DirtBot.Core
 
             if (redis != null)
                 sb.AddSingleton(redis);     // ConnectionMultiplexer
-
-            if (mysql != null)
-                sb.AddSingleton(mysql);     // MySqlConnection
 
             var services = sb.BuildServiceProvider();
 

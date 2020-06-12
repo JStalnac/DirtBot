@@ -1,4 +1,6 @@
-﻿using DSharpPlus;
+﻿using System.Threading.Tasks;
+// using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
@@ -23,6 +25,11 @@ namespace DirtBot.Core
         /// The name displayed for users.
         /// </summary>
         public abstract string DisplayName { get; }
+
+        /// <summary>
+        /// DirtBot services.
+        /// </summary>
+        protected IServiceProvider Services { get; }
 
         /// <summary>
         /// Logger for this module.
@@ -59,29 +66,25 @@ namespace DirtBot.Core
         }
 
         /// <summary>
-        /// MySql connection
+        /// Connects to MySql using the connection string provided in the config and returns it.
         /// </summary>
-        protected MySqlConnection MySql
+        protected MySqlConnection GetMySql()
         {
-            get
-            {
-                var mysql = Services.GetService<MySqlConnection>();
-                if (mysql is null)
-                    throw new InvalidOperationException("MySql is not connected.");
-                return mysql;
-            }
+            string connectionString = DirtBot.config.MySqlUrl;
+            if (String.IsNullOrEmpty(connectionString))
+                throw new InvalidOperationException("No MySql connection string provided in configuration.");
+            var mysql = new MySqlConnection(connectionString);
+            mysql.Open();
+            return mysql;
         }
 
         /// <summary>
-        /// Gets a MySql command.
+        /// Connects to MySql using the connection string provided in the config and returns it asynchronously
         /// </summary>
-        /// <returns></returns>
-        protected MySqlCommand GetMySqlCommand() => MySql.CreateCommand();
-
-        /// <summary>
-        /// DirtBot services.
-        /// </summary>
-        protected IServiceProvider Services { get; }
+        protected async Task<MySqlConnection> GetMySqlAsync()
+        {
+            return GetMySql();
+        }
 
         /// <summary>
         /// Initializes the module.
