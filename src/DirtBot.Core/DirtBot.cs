@@ -18,6 +18,7 @@ namespace DirtBot.Core
         public LogLevel LogLevel { get; }
         public string LogFile { get; }
         internal DiscordClient Client { get; private set; }
+        internal IServiceProvider Services { get; private set; }
         Logger logger;
         bool active = false;
         internal readonly DirtBotConfiguration config;
@@ -156,7 +157,7 @@ namespace DirtBot.Core
             if (redis != null)
                 sb.AddSingleton(redis);     // ConnectionMultiplexer
 
-            var services = sb.BuildServiceProvider();
+            Services = sb.BuildServiceProvider();
 
             // Configure CommandsNext
             if (config.PrefixResolverType == PrefixResolverType.Redis)
@@ -208,7 +209,7 @@ namespace DirtBot.Core
                     }*/
                 };
 
-            config.CommandsNextConfiguration.Services = services;
+            config.CommandsNextConfiguration.Services = Services;
             var commands = Client.UseCommandsNext(config.CommandsNextConfiguration);
 
             commands.CommandErrored += async (e) =>
@@ -219,7 +220,7 @@ namespace DirtBot.Core
 
             //Load all modules
             logger.Info("Loading all modules...");
-            var manager = services.GetRequiredService<ModuleManager>();
+            var manager = Services.GetRequiredService<ModuleManager>();
 
             // Internal
             foreach (var m in manager.LoadAllModules(GetType().Assembly))
@@ -281,6 +282,14 @@ namespace DirtBot.Core
             {
                 logger.Error("Failed to connect to Discord.", e);
             }
+        }
+
+        public async Task StopAsync()
+        {
+            await Client.DisconnectAsync();
+            var redis = Services.GetService<ConnectionMultiplexer>();
+            if (redis != null)
+                redis.Close();
         }
     }
 }
