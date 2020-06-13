@@ -286,10 +286,15 @@ namespace DirtBot.Core
 
         public async Task StopAsync()
         {
+            logger.Info("Stopping...");
+            logger.Info("Disconnecting from Discord...");
             await Client.DisconnectAsync();
             var redis = Services.GetService<ConnectionMultiplexer>();
             if (redis != null)
+            {
+                logger.Info("Disconnecting from Redis...");
                 redis.Close();
+            }
         }
     }
 }
