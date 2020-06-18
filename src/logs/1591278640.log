@@ -1,5 +1,0 @@
-===================================== -[ RESTART ]- ======================================
-The application has thrown an unhandled exception: System.ArgumentNullException: Token cannot be null, empty, or all whitespace. (Parameter 'value')
-   at DSharpPlus.DiscordConfiguration.set_Token(String value)
-   at DirtBot.Core.DirtBotConfiguration.set_Token(String value) in D:\JS\Repos\DirtBot-dsp\src\DirtBot.Core\DirtBotConfiguration.cs:line 28
-   at DirtBot.Program.Main(String[] args) in D:\JS\Repos\DirtBot-dsp\src\DirtBot\Program.cs:line 50
