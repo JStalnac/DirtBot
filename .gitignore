@@ -7,3 +7,6 @@ Properties/PublishProfiles
 # Builds
 bin/
 obj/
+
+# Config files
+config.yml
