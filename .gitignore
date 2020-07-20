@@ -3,6 +3,7 @@
 .vscode/
 .editorconfig
 Properties/PublishProfiles
+*.user
 
 # Builds
 bin/
