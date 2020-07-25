@@ -1,11 +1,17 @@
 # IDE files
 .vs/
+.idea/
 .vscode/
 .editorconfig
 Properties/PublishProfiles
 
 # Config files
-config.json
+*.yml
+
+# Database files
+*.db
+# EF Core
+Migrations/
 
 # Builds
 bin/
