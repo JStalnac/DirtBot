@@ -16,7 +16,7 @@
  features are implemented and optimized and bugs will most likely
  appear. Be patient.
 
- ## Helping
+ ## Helping / Contributing
  You can help by pull requesting if you want to.
  I have moved back to Discord.Net and trying to
  catch up with progress in `dsharpplus`.
