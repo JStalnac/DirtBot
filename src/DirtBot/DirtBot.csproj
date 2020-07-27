@@ -29,8 +29,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
     <PackageReference Include="YamlDotNet" Version="8.1.2" />
   </ItemGroup>
-  
-  <ItemGroup>
+
+  <ItemGroup Condition="Exists('sqlite.db')">
     <!-- Copies the database file created with dotnet ef to the output path -->
     <None Include="sqlite.db" Link="sqlite.db" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
