@@ -1,6 +1,8 @@
-﻿using DirtBot.Database.Models;
-using Microsoft.Data.Sqlite;
+﻿using System;
+using DirtBot.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace DirtBot.Database
 {
@@ -8,18 +10,18 @@ namespace DirtBot.Database
     {
         public virtual DbSet<GuildPrefix> Prefixes { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            var connectionString = new SqliteConnectionStringBuilder()
+            string mysqlConnectionString = new MySqlConnectionStringBuilder
             {
-                DataSource = "sqlite.db",
-                Password = "abcd"
-            };
-
-            var connection = new SqliteConnection(connectionString.ToString());
-            connection.Open();
-
-            optionsBuilder.UseSqlite(connection);
+                // Don't hack my dev database lol
+                Server = "localhost",
+                UserID = "admin",
+                Password = "1234",
+                Database = "ef"
+            }.ToString();
+            options.UseMySql(mysqlConnectionString, o
+                => o.ServerVersion(new Version(8, 0, 18), ServerType.MySql));
         }
     }
 }

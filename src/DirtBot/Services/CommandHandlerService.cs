@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DirtBot.Database;
+using DirtBot.Extensions;
 using Color = System.Drawing.Color;
 
 namespace DirtBot.Services
@@ -30,11 +31,55 @@ namespace DirtBot.Services
             Client.MessageReceived += async msg =>
             {
                 // Free the Gateway thread from the command task.
-                await MessageLogger(msg);
+                MessageLogger(msg);
                 await ProcessCommandAsync(msg);
             };
 
             await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), Services);
+        }
+
+        private async Task ProcessCommandAsync(SocketMessage arg)
+        {
+            /*
+             * TODO: Currently command execution is very slow because of
+             * a large overhead with the database connection and prefix
+             * retrieval. I suggest we implement some kind of caching ourselves
+             * with StackExchange.Redis or with a different third party caching
+             * library like Microsoft.Extensions.Caching.Memory
+             */
+
+            // Source filter
+            if (arg.Source != MessageSource.User) return;
+            var message = (SocketUserMessage) arg;
+
+            // Get the prefix
+            string pfx = GetPrefix(arg);
+
+            // Prefix get here so that it won't be inefficiently in another class
+            if (message.Content.ToLower().Trim() == $"{pfx}prefix")
+            {
+                // Prepare message
+                var eb = new EmbedBuilder();
+                var reply = new StringBuilder();
+                eb.Title = "Prefix";
+                eb.Color = new Discord.Color(0x00ff00); // TODO: Cool colors with some kind of custom class :)
+
+                // Send a message
+                reply.AppendLine($"My prefix is **{pfx}**");
+                if (message.Channel is IPrivateChannel)
+                    reply.AppendLine("We are in private messages, so you can't change the prefix here.");
+                eb.Description = reply.ToString();
+                message.Channel.SendMessageAsync(embed: eb.Build()).Release();
+                return;
+            }
+
+            // Command check
+            int argPos = 0;
+            if (message.HasStringPrefix(pfx, ref argPos))
+            {
+                var context = new SocketCommandContext(Client, message);
+                await Commands.ExecuteAsync(context, argPos, Services);
+            }
         }
 
         public static string GetPrefix(ICommandContext ctx)
@@ -56,63 +101,17 @@ namespace DirtBot.Services
             if (!initialized)
                 return null;
             using (var db = new DatabaseContext())
-            {
-                return db.Prefixes.SingleOrDefault(p => p.GuildId == guildId)?.Prefix ?? prefix;
-            }
+                return db.Prefixes.SingleOrDefault(p => p.Id == guildId)?.Prefix ?? prefix;
         }
 
-        private async Task ProcessCommandAsync(SocketMessage arg)
-        {
-            /*
-             * TODO: Currently command execution is very slow because of
-             * a large overhead with the database connection and prefix
-             * retrieval. I suggest we implement some kind of caching ourselves
-             * with StackExchange.Redis or with a different third party caching
-             * library like Microsoft.Extensions.Caching.Memory
-             */
-
-            // Source filter
-            if (arg.Source != MessageSource.User) return;
-            var message = (SocketUserMessage) arg;
-
-            // Get the prefix
-            string pfx = GetPrefix(arg);
-
-            // Prefix get here so that it won't be inefficiently in another class
-            if (message.Content.ToLower().Trim() == $"{prefix.ToLower()}prefix")
-            {
-                // Prepare message
-                var eb = new EmbedBuilder();
-                var reply = new StringBuilder();
-                eb.Title = "Prefix";
-                eb.Color = new Discord.Color(0x00ff00); // TODO: Cool colors with some kind of custom class :)
-
-                // Send a message
-                reply.AppendLine($"My prefix is **{prefix}**");
-                if (message.Channel is IPrivateChannel)
-                    reply.AppendLine("We are in private messages, so you can't change the prefix here.");
-                eb.Description = reply.ToString();
-                await message.Channel.SendMessageAsync(embed: eb.Build());
-                return;
-            }
-
-            // Command check
-            int argPos = 0;
-            if (message.HasStringPrefix(pfx, ref argPos))
-            {
-                var context = new SocketCommandContext(Client, message);
-                await Commands.ExecuteAsync(context, argPos, Services);
-            }
-        }
-
-        private static async Task MessageLogger(SocketMessage arg)
+        private static void MessageLogger(SocketMessage arg)
         {
             var log = Logger.GetLogger("Messages");
             string content = arg.Content == "" & arg.Embeds.Any() ? "<embed>" : arg.Content;
             log.Write($"Message from {arg.Author}: {content}", Color.DarkGray);
         }
 
-        private async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext ctx, IResult result)
+        private Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext ctx, IResult result)
         {
             if (result.IsSuccess)
             {
@@ -135,6 +134,7 @@ namespace DirtBot.Services
 
                 logger.Info(sb.ToString());
             }
+            return Task.CompletedTask;
         }
     }
 }

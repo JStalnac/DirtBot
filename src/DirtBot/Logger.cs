@@ -1,12 +1,12 @@
 /*
  * Copyright 2020 JStalnac
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -83,7 +83,7 @@ namespace DirtBot
         {
             // Sanitize the input
             string cleanName = nameRegex.Replace(name, "");
-            if (string.IsNullOrEmpty(cleanName) || string.IsNullOrWhiteSpace(cleanName))
+            if (String.IsNullOrEmpty(cleanName) || String.IsNullOrWhiteSpace(cleanName))
                 throw new ArgumentNullException(nameof(name));
             this.name = cleanName;
         }
@@ -108,7 +108,7 @@ namespace DirtBot
         /// <param name="path"></param>
         public static void SetLogFile(string path)
         {
-            if (string.IsNullOrEmpty(path) || string.IsNullOrWhiteSpace(path))
+            if (String.IsNullOrEmpty(path) || String.IsNullOrWhiteSpace(path))
                 throw new ArgumentNullException(nameof(path));
 
             try
@@ -139,7 +139,7 @@ namespace DirtBot
         /// <param name="format"></param>
         public static void SetDateTimeFormat(string format)
         {
-            if (string.IsNullOrEmpty(format) || string.IsNullOrWhiteSpace(format))
+            if (String.IsNullOrEmpty(format) || String.IsNullOrWhiteSpace(format))
                 throw new ArgumentException(nameof(format));
 
             try
@@ -345,8 +345,9 @@ namespace DirtBot
             Write(obj, LogLevel.Critical);
         }
 
-        private static Color GetColor(LogLevel logLevel) =>
-            logLevel switch
+        private static Color GetColor(LogLevel logLevel)
+        {
+            return logLevel switch
             {
                 LogLevel.Debug => Color.FromArgb(0x0f960d),
                 LogLevel.Info => Color.FromArgb(0xeaeaea),
@@ -356,9 +357,10 @@ namespace DirtBot
                 LogLevel.Critical => Color.FromArgb(0xff0000),
                 _ => Color.LightGray
             };
+        }
 
         private static object writeLock = new object();
-        
+
         /// <summary>
         /// Writes a log message using a custom color including an exception.
         /// </summary>
@@ -367,15 +369,18 @@ namespace DirtBot
         /// <param name="back">Background color</param>
         /// <param name="exception">Exception</param>
         /// <param name="logLevel">Log level. Don't use this manually.</param>
-        public void Write(string message, Color fore, Color? back = null, Exception exception = null, LogLevel logLevel = LogLevel.Info)
+        public void Write(string message, Color fore, Color? back = null, Exception exception = null,
+            LogLevel logLevel = LogLevel.Info)
         {
             // This allows us to write safely multiple lines
             // and to a file.
             lock (writeLock)
             {
-                if (message == null || string.IsNullOrEmpty(message.Trim()))
+                if (message == null || String.IsNullOrEmpty(message.Trim()))
+                {
                     if (exception == null)
                         message = "null"; // No message, no exception
+                }
 
                 var lines = new List<string>();
 
@@ -390,15 +395,18 @@ namespace DirtBot
                 if (exception != null)
                     lines.AddRange(exception.ToString().Split('\n'));
 
-                string prefix = $"[{DateTime.Now.ToString(datetimeFormat, CultureInfo.InvariantCulture)}] [{name}] [{logLevel}]";
+                string prefix =
+                    $"[{DateTime.Now.ToString(datetimeFormat, CultureInfo.InvariantCulture)}] [{name}] [{logLevel}]";
 
                 // Begin write to file
                 Task fileWrite = null;
                 try
                 {
-                    if (!string.IsNullOrEmpty(logFile))
+                    if (!String.IsNullOrEmpty(logFile))
                     {
-                        fileWrite = File.AppendAllLinesAsync(logFile, lines.Select(x => $"{prefix} {x?.TrimEnd()}"));
+                        // For safety reasons, the variable might get modified before it's written to the log file
+                        string p = prefix;
+                        fileWrite = File.AppendAllLinesAsync(logFile, lines.Select(x => $"{p} {x?.TrimEnd()}"));
                     }
                 }
                 catch (Exception ex)
@@ -407,7 +415,7 @@ namespace DirtBot
                 }
 
                 // Write to console
-                
+
                 // Coloring
                 prefix = prefix.Pastel(fore);
                 if (back.HasValue)
@@ -443,6 +451,7 @@ namespace DirtBot
         {
             Write(obj?.ToString(), logLevel, null);
         }
+
         /// <summary>
         /// Writes a log message in a custom color using an object's <see cref="System.Object.ToString"/> method.
         /// </summary>

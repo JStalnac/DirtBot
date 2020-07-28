@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Commands;
 using System.Threading.Tasks;
+using DirtBot.Extensions;
 
 namespace DirtBot.Commands
 {
@@ -15,9 +16,9 @@ namespace DirtBot.Commands
         [RequireUserPermission(ChannelPermission.ManageMessages, ErrorMessage = "Et sää sais poistaa näitä edes ite!")]
         public async Task PurgeCommand(int limit, [Remainder] string args = null)
         {
-            Context.Message.DeleteAsync();
+            await Context.Message.DeleteAsync();
             var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
-            (Context.Channel as ITextChannel).DeleteMessagesAsync(messages);
+            (Context.Channel as ITextChannel)?.DeleteMessagesAsync(messages).Release();
         }
 
         [Command("delet this")]
@@ -26,9 +27,9 @@ namespace DirtBot.Commands
             ErrorMessage = "Hehehe poistaisin tuon viestin mieluusti, mutta minulla ei ole oikeutta siihen hihih")]
         public async Task PurgeCommand([Remainder] string args = null)
         {
-            Context.Message.DeleteAsync();
+            await Context.Message.DeleteAsync();
             var m = await ReplyAsync("Ole hyvä :)");
-            m.DeleteAfterDelay(5000);
+            m.DeleteAfterDelay(5000).Release();
         }
     }
 }

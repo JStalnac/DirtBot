@@ -10,7 +10,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DirtBot.Database;
 using DirtBot.Services;
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 using Color = System.Drawing.Color;
+using ServerType = Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType;
 
 namespace DirtBot
 {
@@ -135,24 +138,45 @@ namespace DirtBot
         private Task LogAsync(LogMessage message)
         {
             var log = Logger.GetLogger(message.Source);
-            log.Info(message.Message, message.Exception);
+            // Select correct log level
+            var level = LogLevel.Info;
+            switch (message.Severity)
+            {
+                case LogSeverity.Critical:
+                    level = LogLevel.Critical;
+                    break;
+                case LogSeverity.Error:
+                    level = LogLevel.Error;
+                    break;
+                case LogSeverity.Warning:
+                    level = LogLevel.Warning;
+                    break;
+                case LogSeverity.Info:
+                    break;
+                case LogSeverity.Verbose:
+                    level = LogLevel.Info;
+                    break;
+                case LogSeverity.Debug:
+                    level = LogLevel.Debug;
+                    break;
+            }
+
+            log.Write(message.Message, level, message.Exception);
             return Task.CompletedTask;
         }
 
         private ServiceProvider ConfigureServices()
         {
-            // Command config
-            var commandConfig = new CommandServiceConfig
-            {
-                DefaultRunMode = RunMode.Async
-            };
-            // SocketClient config, add things if you need to
-            var clientConfig = new DiscordSocketConfig();
-
             var services = new ServiceCollection()
                 // Discord.Net stuff
-                .AddSingleton(new DiscordSocketClient(clientConfig))
-                .AddSingleton(new CommandService(commandConfig))
+                .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
+                {
+
+                }))
+                .AddSingleton(new CommandService(new CommandServiceConfig
+                {
+                    DefaultRunMode = RunMode.Async
+                }))
                 .AddSingleton<HttpClient>()
                 // Config and internal stuff
                 .AddSingleton<CommandHandlerService>()

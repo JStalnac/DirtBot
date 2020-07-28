@@ -12,7 +12,7 @@ namespace DirtBot.Commands
     {
         [Command("error")]
         [Alias("err")]
-        public async Task ErrorCommand()
+        public Task ErrorCommand()
         {
             throw new Exception("Error!");
         }

@@ -37,10 +37,10 @@ namespace DirtBot.Commands
                     // Update prefix
                     var gPrefix = new GuildPrefix()
                     {
-                        GuildId = Context.Guild.Id,
+                        Id = Context.Guild.Id,
                         Prefix = prefix
                     };
-                    if (db.Prefixes.Any(p => p.GuildId == gPrefix.GuildId))
+                    if (db.Prefixes.Any(p => p.Id == gPrefix.Id))
                     {
                         // Prefix already exists in database
                         db.Prefixes.Attach(gPrefix);
