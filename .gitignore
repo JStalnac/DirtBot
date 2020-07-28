@@ -3,7 +3,8 @@
 .idea/
 .vscode/
 .editorconfig
-Properties/PublishProfiles
+Properties/
+*.user
 
 # Config files
 *.yml
