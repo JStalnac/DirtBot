@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Reflection;
 using StackExchange.Redis;
 
 namespace DirtBot.Services

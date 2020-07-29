@@ -9,8 +9,6 @@ Properties/
 # Config files
 *.yml
 
-# Database files
-*.db
 # EF Core
 Migrations/
 

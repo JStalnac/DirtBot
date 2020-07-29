@@ -10,10 +10,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DirtBot.Database;
 using DirtBot.Services;
-using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
 using Color = System.Drawing.Color;
-using ServerType = Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType;
 
 namespace DirtBot
 {
@@ -31,7 +28,7 @@ namespace DirtBot
         /// </summary>
         public static Dictionary<Type, bool> ServiceTypes { get; } = new Dictionary<Type, bool>()
         {
-            { typeof(CustomStatusService), true }
+            { typeof(CustomStatusService), true },
         };
 
         public async Task StartAsync()
@@ -55,30 +52,12 @@ namespace DirtBot
                 Client.Log += LogAsync;
                 Services.GetRequiredService<CommandService>().Log += LogAsync;
 
-                // Redis storage
-                log = Logger.GetLogger("Redis");
-                string redisUrl = (string)Configuration.GetValue("redis_url");
-                if (!String.IsNullOrEmpty(redisUrl.TrimEnd()))
-                {
-                    log.Info("Logging into Redis...");
-                    try
-                    {
-                        Redis = ConnectionMultiplexer.Connect((string) Configuration.GetValue("redis_url"));
-                    }
-                    catch (RedisConnectionException e)
-                    {
-                        log.Critical("Failed to connect to Redis. Check the Redis address and that the server is online and try again.", e);
-                        Environment.Exit(-1);
-                    }
-                    log.Info("Successfully connected to Redis.");
-                }
-                else
-                    log.Info("Not connecting to Redis because no connection string was provided.\nSome services may not function correctly");
-
                 // Initializing services
                 // Commands
                 await Services.GetRequiredService<CommandHandlerService>()
-                    .InitializeAsync((string) Configuration.GetValue("prefix"));
+                    .InitializeAsync();
+                Services.GetRequiredService<PrefixManagerService>()
+                    .Initialize((string)Configuration.GetValue("prefix"));
 
                 // Loading services added to ServiceTypes
                 log = Logger.GetLogger("Services");
@@ -170,23 +149,43 @@ namespace DirtBot
             var services = new ServiceCollection()
                 // Discord.Net stuff
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
-                {
-
-                }))
+                    { }))
                 .AddSingleton(new CommandService(new CommandServiceConfig
                 {
                     DefaultRunMode = RunMode.Async
                 }))
                 .AddSingleton<HttpClient>()
-                // Config and internal stuff
+                // Services
                 .AddSingleton<CommandHandlerService>()
-                // Database context
-                .AddDbContext<DatabaseContext>();
+                .AddSingleton<PrefixManagerService>()
+                // Database and Redis
+                .AddDbContext<DatabaseContext>()
+                .AddSingleton(ConnectRedis((string) Configuration.GetValue("redis_url")));
 
             // Easy to add new services
             foreach (var kvp in ServiceTypes)
                 services.AddSingleton(kvp.Key);
             return services.BuildServiceProvider();
+        }
+
+        private ConnectionMultiplexer ConnectRedis(string redisUrl)
+        {
+            if (String.IsNullOrEmpty(redisUrl.TrimEnd()))
+                throw new ArgumentNullException(nameof(redisUrl));
+
+            var log = Logger.GetLogger("Redis");
+            log.Info("Connecting to Redis...");
+            try
+            {
+                Redis = ConnectionMultiplexer.Connect(redisUrl);
+            }
+            catch (RedisConnectionException e)
+            {
+                log.Critical("Failed to connect to Redis. Check the Redis address and that the server is online and try again.", e);
+                Environment.Exit(-1);
+            }
+            log.Info("Successfully connected to Redis.");
+            return Redis;
         }
     }
 }

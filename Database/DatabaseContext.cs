@@ -21,7 +21,7 @@ namespace DirtBot.Database
                 Database = "ef"
             }.ToString();
             options.UseMySql(mysqlConnectionString, o
-                => o.ServerVersion(new Version(8, 0, 18), ServerType.MySql));
+                => o.ServerVersion(new Version(8, 0, 21), ServerType.MySql));
         }
     }
 }

@@ -15,6 +15,8 @@ namespace DirtBot.Database.Models
         /// <summary>
         /// The prefix of the guild.
         /// </summary>
+        [Column(TypeName = "VARCHAR(100)")]
+        [Required]
         public string Prefix { get; set; }
     }
 }
