@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DirtBot.Database;
 using DirtBot.Services;
+using Microsoft.EntityFrameworkCore;
 using Color = System.Drawing.Color;
 
 namespace DirtBot
@@ -51,6 +52,23 @@ namespace DirtBot
                 // Discord logging
                 Client.Log += LogAsync;
                 Services.GetRequiredService<CommandService>().Log += LogAsync;
+
+                // Check that the database connection works
+                log = Logger.GetLogger("Database");
+                log.Info("Testing database connection");
+                try
+                {
+                    var testDb = new DatabaseContext();
+                    testDb.Database.OpenConnection();
+                    testDb.Dispose();
+                }
+                catch (Exception e)
+                {
+                    log = Logger.GetLogger("Database");
+                    log.Critical("Failed to connect to database.", e);
+                    Environment.Exit(-1);
+                }
+                log.Info("Successfully connected to database");
 
                 // Initializing services
                 // Commands

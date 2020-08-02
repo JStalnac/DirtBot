@@ -2,9 +2,9 @@
 using System.Text;
 using Discord.Commands;
 using System.Threading.Tasks;
+using DirtBot.Extensions;
 using DirtBot.Services;
 using Discord;
-using Microsoft.EntityFrameworkCore;
 
 namespace DirtBot.Commands
 {
@@ -36,50 +36,52 @@ namespace DirtBot.Commands
             else
             {
                 // In guild
-                try
+                string currentPrefix = await pm.GetPrefixAsync(Context.Guild.Id);
+                if (currentPrefix == prefix)
                 {
-                    // Set prefix
-                    await pm.SetPrefixAsync(Context.Guild.Id, prefix);
+                    eb.Title = "You can't do that!";
+                    eb.Color = new Color(0xff0000);
+                    reply.AppendLine("That is the current prefix of this guild!");
+                }
+                else
+                {
+                    // Update the prefix cache
+                    await pm.CachePrefix(Context.Guild.Id, prefix);
 
+                    // Send the info message here for seemingly better performance. The prefix is cached in Redis so it will still work.
                     eb.Title = "Prefix";
                     eb.Color = new Color(0x00ff00);
-                    string p = prefix.Contains(' ') ? $"'{prefix}'" : prefix;
-                    reply.AppendLine($"The server's prefix is now **{p}**");
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    eb.Title = "Oops!";
-                    eb.Color = new Color(0xff0000);
-                    reply.AppendLine("An error occured while storing your prefix.");
-                    reply.AppendLine("The prefix was recently updated and caused an error");
-                    reply.AppendLine("Please try again later.");
+                    reply.AppendLine($"The server's prefix is now **{PrefixManagerService.PrettyPrefix(prefix)}**");
 
-                    var log = Logger.GetLogger(this);
-                    log.Warning($"Concurrency error while storing prefix for guild {Context.Guild.Name} ({Context.Guild.Id}): pfx: {prefix}");
-                }
-                catch (Exception e)
-                {
-                    // Error
-                    eb.Title = "Oops!";
-                    eb.Color = new Color(0xff0000);
-                    reply.AppendLine("An error occured while storing your prefix.");
-                    reply.AppendLine("Please try again later.");
-                    // Log the error so that it can be debugged
-                    var log = Logger.GetLogger(this);
-                    log.Warning($"Failed to store prefix for guild {Context.Guild.Name} ({Context.Guild.Id}): pfx: {prefix} Exception:", e);
-                }
+                    // Hint about spaces
+                    if (!(args is null))
+                    {
+                        reply.AppendLine();
+                        reply.AppendLine("Hint: You can add **\"** around the text to have spaces in your prefix.```\"Like this\"```");
+                    }
 
-                // Hint about spaces
-                if (!(args is null))
-                {
-                    reply.AppendLine();
-                    reply.AppendLine("Hint: You can add **\"** around the text to have spaces in your prefix.```\"Like this\"```");
+                    // Send message
+                    eb.Description = reply.ToString();
+                    ReplyAsync(embed: eb.Build()).Release();
+
+                    try
+                    {
+                        // Set prefix in the actual database.
+                        await pm.SetPrefixAsync(Context.Guild.Id, prefix);
+                    }
+                    catch (Exception e)
+                    {
+                        // Log the error so that it can be debugged
+                        var log = Logger.GetLogger(this);
+                        log.Warning($"Failed to store prefix for guild {Context.Guild.Name} ({Context.Guild.Id}): pfx: {prefix} Exception:", e);
+                    }
+                    return;
                 }
             }
 
             // Send message
             eb.Description = reply.ToString();
-            await ReplyAsync(embed: eb.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: eb.Build());
         }
 
         [Command("get_prefix")]
@@ -87,7 +89,7 @@ namespace DirtBot.Commands
         public async Task Prefix()
         {
             // Get prefix
-            string prefix = await pm.GetPrefixAsync(Context.Guild?.Id);
+            var prefixGet = pm.GetPrefixAsync(Context.Guild?.Id);
 
             // Prepare message
             var eb = new EmbedBuilder();
@@ -96,7 +98,7 @@ namespace DirtBot.Commands
             eb.Color = new Color(0x00ff00);
 
             // Send a message
-            reply.AppendLine($"My prefix is **{prefix}**");
+            reply.AppendLine($"My prefix is **{PrefixManagerService.PrettyPrefix(await prefixGet)}**");
             if (Context.IsPrivate)
                 reply.AppendLine("We are in private messages, so you can't change the prefix here.");
             eb.Description = reply.ToString();

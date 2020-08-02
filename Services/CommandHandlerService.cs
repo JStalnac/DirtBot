@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -13,11 +14,11 @@ namespace DirtBot.Services
     public class CommandHandlerService : ServiceBase
     {
         private static bool initialized;
-        private PrefixManagerService _prefixManager;
+        private PrefixManagerService pm;
 
-        public CommandHandlerService(PrefixManagerService prefixManager)
+        public CommandHandlerService(PrefixManagerService pm)
         {
-            _prefixManager = prefixManager;
+            this.pm = pm;
         }
 
         /// <summary>
@@ -31,11 +32,12 @@ namespace DirtBot.Services
                 return;
             initialized = true;
             Commands.CommandExecuted += CommandExecutedAsync;
-            Client.MessageReceived += async msg =>
+            Client.MessageReceived += msg =>
             {
                 // Free the Gateway thread from the command task.
                 MessageLogger(msg);
-                await ProcessCommandAsync(msg);
+                ProcessCommandAsync(msg).Release();
+                return Task.CompletedTask;
             };
 
             await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), Services);
@@ -48,7 +50,17 @@ namespace DirtBot.Services
             var message = (SocketUserMessage) arg;
 
             // Get the prefix
-            string pfx = await GetPrefix(arg);
+            string pfx;
+            try
+            {
+                pfx = await GetPrefix(arg);
+            }
+            catch (Exception e)
+            {
+                string src = message.Channel is IGuildChannel gc ? $"{gc.Guild.Name} ({gc.Guild.Id})" : $"{message.Channel.Name}";
+                Logger.GetLogger("Commands").Warning($"Failed to get prefix. {src}", e);
+                return;
+            }
 
             // Command check
             int argPos = 0;
@@ -56,9 +68,23 @@ namespace DirtBot.Services
             {
                 // Refresh the cached prefix
                 if (message.Channel is IGuildChannel c)
-                    _prefixManager.RestoreCache(c.GuildId).Release();
+                    pm.RestoreCache(c.GuildId).Release();
                 var context = new SocketCommandContext(Client, message);
+                // Log message for debugging
+                Logger.GetLogger("Commands").Debug($"Executing command: {GetExecutionInfo(context)}");
+                // Execute command
                 await Commands.ExecuteAsync(context, argPos, Services);
+            }
+            else if (message.Content.TrimEnd() == $"{pm.DefaultPrefix}prefix")
+            {
+                // Info
+                var context = new SocketCommandContext(Client, message);
+                Logger.GetLogger("Commands").Debug($"Executing prefix get with default prefix: {GetExecutionInfo(context)}");
+
+                message.Channel.SendMessageAsync(embed: new EmbedBuilder()
+                    .WithTitle("Title")
+                    .WithDescription($"My prefix is {PrefixManagerService.PrettyPrefix(pfx)}")
+                    .Build()).Release();
             }
         }
 
@@ -71,14 +97,14 @@ namespace DirtBot.Services
         {
             if (!initialized)
                 return null;
-            return _prefixManager.GetPrefixAsync((message.Channel as IGuildChannel)?.GuildId);
+            return pm.GetPrefixAsync((message.Channel as IGuildChannel)?.GuildId);
         }
 
         public Task<string> GetPrefix(ulong guildId)
         {
             if (!initialized)
                 return null;
-            return _prefixManager.GetPrefixAsync(guildId);
+            return pm.GetPrefixAsync(guildId);
         }
 
         private static void MessageLogger(SocketMessage arg)
@@ -99,19 +125,26 @@ namespace DirtBot.Services
                     sb.Append("Unspecified command: ");
                 if (result.IsSuccess)
                     sb.Append("Executed command: ");
-
-                sb.Append(" src:");
-                sb.Append(ctx.Guild != null ? $"{ctx.Guild.Name} ({ctx.Guild.Id})" : "DM");
-                sb.Append(" chnl:");
-                sb.Append($"{ctx.Channel.Name} ({ctx.Channel.Id})");
-                sb.Append(" usr:");
-                sb.Append($"{ctx.User.Username}#{ctx.User.Discriminator} ({ctx.User.Id})");
-                sb.Append(" cmd:");
-                sb.AppendLine(ctx.Message.Content);
-
+                sb.AppendLine(GetExecutionInfo(ctx));
                 logger.Info(sb.ToString());
             }
             return Task.CompletedTask;
+        }
+
+        private string GetExecutionInfo(ICommandContext ctx)
+        {
+            if (ctx is null)
+                throw new ArgumentNullException(nameof(ctx));
+            var sb = new StringBuilder();
+            sb.Append("src:");
+            sb.Append(ctx.Guild != null ? $"{ctx.Guild.Name} ({ctx.Guild.Id}) " : "DM ");
+            sb.Append("chnl:");
+            sb.Append($"{ctx.Channel.Name} ({ctx.Channel.Id}) ");
+            sb.Append("usr:");
+            sb.Append($"{ctx.User.Username}#{ctx.User.Discriminator} ({ctx.User.Id}) ");
+            sb.Append("cmd:");
+            sb.Append(ctx.Message.Content);
+            return sb.ToString();
         }
     }
 }

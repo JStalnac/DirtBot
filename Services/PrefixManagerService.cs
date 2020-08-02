@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using DirtBot.Database;
 using DirtBot.Database.Models;
 using DirtBot.Extensions;
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 using StackExchange.Redis;
 
 namespace DirtBot.Services
@@ -28,8 +30,10 @@ namespace DirtBot.Services
         /// <returns></returns>
         public async Task<string> GetPrefixAsync(ulong? guild)
         {
+            // Direct messages don't have custom prefixes
             if (!guild.HasValue)
                 return DefaultPrefix;
+            // Get a cached prefix from Redis
             var rdb = Redis.GetDatabase(0);
             string result = await rdb.StringGetAsync($"prefixes:{guild}");
 
@@ -39,7 +43,7 @@ namespace DirtBot.Services
 
             // Get the prefix from MySql database;
             using (var db = new DatabaseContext())
-                result = (await db.Prefixes.FirstOrDefaultAsync(p => p.Id == guild))?.Prefix;
+                result = (await AsyncEnumerable.FirstOrDefaultAsync(db.Prefixes, p => p.Id == guild))?.Prefix;
             result ??= DefaultPrefix;
             CachePrefix((ulong)guild, result).Release();
             return result;
@@ -47,7 +51,7 @@ namespace DirtBot.Services
 
         /// <summary>
         /// Sets the guilds prefix.
-        /// Automatically caches prefixes for you.
+        /// Does not cache prefixes for you.
         /// </summary>
         /// <param name="guild"></param>
         /// <param name="prefix"></param>
@@ -58,26 +62,13 @@ namespace DirtBot.Services
                 return;
             if (String.IsNullOrEmpty(prefix?.TrimEnd()))
                 throw new ArgumentNullException(nameof(prefix));
+            if (prefix.Length > 30)
+                throw new ArgumentException("Prefix must be less than 100 characters long", nameof(prefix));
 
             using (var db = new DatabaseContext())
             {
-                // Update prefix
-                var pfx = await db.Prefixes.FirstOrDefaultAsync(p => p.Id == guild);
-                if (pfx != null)
-                    pfx.Prefix = prefix;
-                else
-                {
-                    // Prefix does not exist in database. Add it.
-                    db.Prefixes.Add(new GuildPrefix
-                    {
-                        Id = (ulong) guild,
-                        Prefix = prefix
-                    });
-                }
-                // Save the database changes
-                await db.SaveChangesAsync();
-                // Update the cache of the prefix
-                CachePrefix((ulong)guild, prefix).Release();
+                string escaped = MySqlHelper.EscapeString(prefix);
+                await db.Database.ExecuteSqlRawAsync($"INSERT INTO prefixes(Id, Prefix) VALUES ({guild}, '{escaped}') ON DUPLICATE KEY UPDATE Prefix = '{escaped}'");
             }
         }
 
@@ -87,7 +78,7 @@ namespace DirtBot.Services
         /// <param name="guild">Guild</param>
         /// <param name="prefix">Prefix</param>
         /// <returns></returns>
-        private async Task CachePrefix(ulong guild, string prefix)
+        public async Task CachePrefix(ulong guild, string prefix)
         {
             // Cache the prefix for the guild in Redis.
             await Redis.GetDatabase(0).StringSetAsync($"prefixes:{guild}", prefix, TimeSpan.FromMinutes(15),
@@ -103,6 +94,13 @@ namespace DirtBot.Services
         {
             await Redis.GetDatabase(0).KeyExpireAsync($"prefixes:{guild}", TimeSpan.FromMinutes(15),
                 flags: CommandFlags.FireAndForget);
+        }
+
+        public static string PrettyPrefix(string prefix)
+        {
+            if (String.IsNullOrEmpty(prefix?.Trim()))
+                return "";
+            return prefix.Contains(' ') ? $"'{prefix}'" : prefix;
         }
     }
 }

@@ -14,7 +14,6 @@ namespace DirtBot.Database
         {
             string mysqlConnectionString = new MySqlConnectionStringBuilder
             {
-                // Don't hack my dev database lol
                 Server = "localhost",
                 UserID = "admin",
                 Password = "1234",
