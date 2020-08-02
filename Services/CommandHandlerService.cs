@@ -82,7 +82,8 @@ namespace DirtBot.Services
                 Logger.GetLogger("Commands").Debug($"Executing prefix get with default prefix: {GetExecutionInfo(context)}");
 
                 message.Channel.SendMessageAsync(embed: new EmbedBuilder()
-                    .WithTitle("Title")
+                    .WithTitle("Prefix")
+                    .WithColor(0x00ff00)
                     .WithDescription($"My prefix is {PrefixManagerService.PrettyPrefix(pfx)}")
                     .Build()).Release();
             }
