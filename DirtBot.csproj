@@ -19,5 +19,21 @@
     <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
     <PackageReference Include="YamlDotNet" Version="8.1.2" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <Content Include="lang/**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="lang\en\commands\language.yml" />
+    <None Remove="lang\fi\commands\language.yml" />
+    <None Remove="lang\fi\commands\prefix.yml" />
+    <None Remove="lang\fi\errors.yml" />
+    <None Remove="lang\fi\general.yml" />
+    <None Remove="lang\en\commands\prefix.yml" />
+    <None Remove="lang\en\errors.yml" />
+  </ItemGroup>
+  
 </Project>

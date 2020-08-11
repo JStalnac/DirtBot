@@ -12,6 +12,7 @@ using DirtBot.Database;
 using DirtBot.Services;
 using Microsoft.EntityFrameworkCore;
 using Color = System.Drawing.Color;
+using DirtBot.Translation;
 
 namespace DirtBot
 {
@@ -77,6 +78,11 @@ namespace DirtBot
                 Services.GetRequiredService<PrefixManagerService>()
                     .Initialize((string)Configuration.GetValue("prefix"));
 
+                log = Logger.GetLogger<TranslationManager>();
+                log.Info("Loading translations");
+                await TranslationManager.LoadTranslations();
+                log.Info("Loaded all translations");
+
                 // Loading services added to ServiceTypes
                 log = Logger.GetLogger("Services");
                 foreach (var kvp in ServiceTypes)
@@ -106,11 +112,11 @@ namespace DirtBot
                 }
 
                 // Login
-                log = Logger.GetLogger("DirtBot");
+                log = Logger.GetLogger(this);
                 try
                 {
                     log.Info("Logging onto Discord");
-                    await Client.LoginAsync(TokenType.Bot, (string) Configuration.GetValue("token"));
+                    await Client.LoginAsync(TokenType.Bot, (string)Configuration.GetValue("token"));
                 }
                 catch (Discord.Net.HttpException)
                 {
@@ -188,10 +194,16 @@ namespace DirtBot
 
         private ConnectionMultiplexer ConnectRedis(string redisUrl)
         {
-            if (String.IsNullOrEmpty(redisUrl.TrimEnd()))
-                throw new ArgumentNullException(nameof(redisUrl));
+            if (Redis != null)
+                return Redis;
 
             var log = Logger.GetLogger("Redis");
+            if (String.IsNullOrEmpty(redisUrl.TrimEnd()))
+            {
+                log.Critical("Redis connection string not provided. Exiting");
+                Environment.Exit(-1);
+            }
+
             log.Info("Connecting to Redis...");
             try
             {

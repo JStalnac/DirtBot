@@ -1,11 +1,13 @@
-﻿using System.Threading.Tasks;
-using DirtBot.Extensions;
+﻿using System;
+using System.Threading.Tasks;
+using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
 
 namespace DirtBot.Commands
 {
-    public class LogLevelCommand : ModuleBase<SocketCommandContext>
+    [Group("debug")]
+    public class DebugCommand : ModuleBase<SocketCommandContext>
     {
         [Command("set-loglevel")]
         [RequireOwner]
@@ -47,6 +49,23 @@ namespace DirtBot.Commands
             }
 
             await ReplyAsync(embed: eb.Build());
+        }
+
+        [Command("reload-translations")]
+        public async Task ReloadTranslations()
+        {
+            await ReplyAsync("Reloading...");
+            try
+            {
+                await TranslationManager.LoadTranslations();
+            }
+            catch (Exception e)
+            {
+                await ReplyAsync($"Reloaded with exception: ```{e}```");
+                Logger.GetLogger(this).Warning("Failed to load translations:", e);
+                return;
+            }
+            await ReplyAsync("Reloaded! Check the log for possible warnings");
         }
     }
 }

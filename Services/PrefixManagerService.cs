@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using DirtBot.Database;
-using DirtBot.Database.Models;
 using DirtBot.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
@@ -68,7 +67,9 @@ namespace DirtBot.Services
             using (var db = new DatabaseContext())
             {
                 string escaped = MySqlHelper.EscapeString(prefix);
-                await db.Database.ExecuteSqlRawAsync($"INSERT INTO prefixes(Id, Prefix) VALUES ({guild}, '{escaped}') ON DUPLICATE KEY UPDATE Prefix = '{escaped}'");
+                int changed = await db.Database.ExecuteSqlRawAsync($"INSERT INTO prefixes(Id, Prefix) VALUES ({guild}, '{escaped}') ON DUPLICATE KEY UPDATE Prefix = '{escaped}'").ConfigureAwait(false);
+                if (changed == 0)
+                    Logger.GetLogger(this).Warning($"Updated prefix but zero rows changed in database. Guild: {guild} Prefix: {prefix}");
             }
         }
 

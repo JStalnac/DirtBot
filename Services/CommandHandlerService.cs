@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using DirtBot.Extensions;
 using Color = System.Drawing.Color;
+using DirtBot.Translation;
+using SmartFormat;
 
 namespace DirtBot.Services
 {
@@ -80,11 +82,12 @@ namespace DirtBot.Services
                 // Info
                 var context = new SocketCommandContext(Client, message);
                 Logger.GetLogger("Commands").Debug($"Executing prefix get with default prefix: {GetExecutionInfo(context)}");
+                var ts = await TranslationManager.CreateFor(context.Channel);
 
                 message.Channel.SendMessageAsync(embed: new EmbedBuilder()
-                    .WithTitle("Prefix")
+                    .WithTitle(ts.GetMessage("commands/prefix:embed_title"))
                     .WithColor(0x00ff00)
-                    .WithDescription($"My prefix is {PrefixManagerService.PrettyPrefix(pfx)}")
+                    .WithDescription(ts.GetMessage("commands/prefix:my_prefix_is").FormatSmart(PrefixManagerService.PrettyPrefix(pfx)))
                     .Build()).Release();
             }
         }

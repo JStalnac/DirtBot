@@ -10,6 +10,8 @@ namespace DirtBot.Database
     {
         public virtual DbSet<GuildPrefix> Prefixes { get; set; }
 
+        public virtual DbSet<LanguageData> Languages { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             string mysqlConnectionString = new MySqlConnectionStringBuilder

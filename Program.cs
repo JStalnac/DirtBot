@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using DirtBot.Translation;
 
 namespace DirtBot
 {
@@ -18,6 +20,8 @@ namespace DirtBot
 
                 try
                 {
+                    // Write exception
+                    File.AppendAllText(logFile, e.ExceptionObject.ToString());
                     // Clean up stuff safely
                     CleanUp();
                 }
@@ -30,6 +34,7 @@ namespace DirtBot
                 log.Important("Cancel key press received.\nCleaning up...");
                 CleanUp();
                 log.Important("Done!\nExit 0");
+                Environment.Exit(0);
             };
 
             string PadCenter(string s, int width, char c)
@@ -40,15 +45,19 @@ namespace DirtBot
                 return s.PadLeft(s.Length + padding / 2, c).PadRight(width, c);
             }
 
+            // Enable file output
             Logger.SetLogFile(logFile);
-            var restart = " -[ RESTART ]- ";
+
+            string restart = " -[ RESTART ]- ";
             restart = PadCenter(restart, 90, '=');
             File.AppendAllText(logFile, restart + "\n");
 
-            Logger.GetLogger("Main").Important("Starting! Hello World!");
+            var log = Logger.GetLogger("Main");
+            log.Important("Starting! Hello World!");
+
             new Dirtbot().StartAsync().Wait();
         }
-        
+
         static void CleanUp()
         {
             Dirtbot.Client?.LogoutAsync();

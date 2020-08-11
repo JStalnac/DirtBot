@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using DirtBot.Extensions;
 using DirtBot.Services;
 using Discord;
+using DirtBot.Translation;
+using SmartFormat;
 
 namespace DirtBot.Commands
 {
@@ -24,14 +26,15 @@ namespace DirtBot.Commands
             // Prepare reply
             var eb = new EmbedBuilder();
             var reply = new StringBuilder();
+            var ts = await TranslationManager.CreateFor(Context.Channel);
 
             // Check if in guild
             if (Context.Guild is null)
             {
                 // No
-                eb.Title = "You can't do that!";
+                eb.Title = ts.GetMessage("errors:permission_denied");
                 eb.Color = new Color(0xff0000);
-                reply.AppendLine("You can't change the prefix in private messages");
+                reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
             }
             else
             {
@@ -39,9 +42,9 @@ namespace DirtBot.Commands
                 string currentPrefix = await pm.GetPrefixAsync(Context.Guild.Id);
                 if (currentPrefix == prefix)
                 {
-                    eb.Title = "You can't do that!";
+                    eb.Title = ts.GetMessage("errors:permission_denied");
                     eb.Color = new Color(0xff0000);
-                    reply.AppendLine("That is the current prefix of this guild!");
+                    reply.AppendLine(ts.GetMessage("commands/prefix:error_same_prefix"));
                 }
                 else
                 {
@@ -49,15 +52,16 @@ namespace DirtBot.Commands
                     await pm.CachePrefix(Context.Guild.Id, prefix);
 
                     // Send the info message here for seemingly better performance. The prefix is cached in Redis so it will still work.
-                    eb.Title = "Prefix";
+                    eb.Title = ts.GetMessage("commands/prefix:embed_prefix");
                     eb.Color = new Color(0x00ff00);
-                    reply.AppendLine($"The server's prefix is now **{PrefixManagerService.PrettyPrefix(prefix)}**");
+                    reply.AppendLine(ts.GetMessage("commands/prefix:prefix_set_message")
+                        .FormatSmart(PrefixManagerService.PrettyPrefix(prefix)));
 
                     // Hint about spaces
                     if (!(args is null))
                     {
                         reply.AppendLine();
-                        reply.AppendLine("Hint: You can add **\"** around the text to have spaces in your prefix.```\"Like this\"```");
+                        reply.AppendLine(ts.GetMessage("commands/prefix:quote_hint"));
                     }
 
                     // Send message
@@ -90,19 +94,20 @@ namespace DirtBot.Commands
         {
             // Get prefix
             var prefixGet = pm.GetPrefixAsync(Context.Guild?.Id);
+            var ts = await TranslationManager.CreateFor(Context.Channel);
 
             // Prepare message
             var eb = new EmbedBuilder();
             var reply = new StringBuilder();
-            eb.Title = "Prefix";
+            eb.Title = ts.GetMessage("commands/prefix:embed_title");
             eb.Color = new Color(0x00ff00);
 
             // Send a message
-            reply.AppendLine($"My prefix is **{PrefixManagerService.PrettyPrefix(await prefixGet)}**");
+            reply.AppendLine(ts.GetMessage("commands/prefix:my_prefix_is").FormatSmart(PrefixManagerService.PrettyPrefix(await prefixGet)));
             if (Context.IsPrivate)
-                reply.AppendLine("We are in private messages, so you can't change the prefix here.");
+                reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
             eb.Description = reply.ToString();
-            await ReplyAsync(embed: eb.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: eb.Build());
         }
     }
 }

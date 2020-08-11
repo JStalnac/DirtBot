@@ -164,7 +164,17 @@ namespace DirtBot
         /// <returns></returns>
         public static Logger GetLogger<T>(T type)
         {
-            return new Logger(typeof(T).FullName);
+            return new Logger(typeof(T).Name);
+        }
+
+        /// <summary>
+        /// Gets a new logger for the specified type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Logger GetLogger<T>()
+        {
+            return new Logger(typeof(T).Name);
         }
 
         /// <summary>
