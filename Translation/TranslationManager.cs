@@ -125,7 +125,8 @@ namespace DirtBot.Translation
             while (true)
             {
                 // Take path
-                string p = path.Dequeue();
+                if (!path.TryDequeue(out string p))
+                    return null;
 
                 // If this is the last part of the path
                 if (path.Count == 0)
