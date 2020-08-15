@@ -77,6 +77,7 @@ namespace DirtBot
                     .InitializeAsync();
                 Services.GetRequiredService<PrefixManagerService>()
                     .Initialize((string)Configuration.GetValue("prefix"));
+                Services.GetRequiredService<CategoryManagerService>();
 
                 log = Logger.GetLogger<TranslationManager>();
                 log.Info("Loading translations");
@@ -173,7 +174,9 @@ namespace DirtBot
             var services = new ServiceCollection()
                 // Discord.Net stuff
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
-                    { }))
+                {
+                    ExclusiveBulkDelete = true
+                }))
                 .AddSingleton(new CommandService(new CommandServiceConfig
                 {
                     DefaultRunMode = RunMode.Async
@@ -182,6 +185,7 @@ namespace DirtBot
                 // Services
                 .AddSingleton<CommandHandlerService>()
                 .AddSingleton<PrefixManagerService>()
+                .AddSingleton<CategoryManagerService>()
                 // Database and Redis
                 .AddDbContext<DatabaseContext>()
                 .AddSingleton(ConnectRedis((string) Configuration.GetValue("redis_url")));

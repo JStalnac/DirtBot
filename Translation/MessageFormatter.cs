@@ -43,7 +43,11 @@ namespace DirtBot.Translation
         /// <param name="embed">Embed</param>
         /// <param name="args">Format arguments</param>
         /// <returns></returns>
-        public static Task<IUserMessage> SendMessageFormatted(this ITextChannel channel, string format, bool isTTS = false, Embed embed = null, params object[] args)
-            => channel.SendMessageAsync(Format(format, args), isTTS, embed);
+        public static Task<IUserMessage> SendMessageFormatted(this IMessageChannel channel, string format, bool isTTS = false, Embed embed = null, params object[] args)
+        {
+            if (channel is null)
+                throw new ArgumentNullException(nameof(channel));
+            return channel.SendMessageAsync(Format(format, args), isTTS, embed);
+        }
     }
 }

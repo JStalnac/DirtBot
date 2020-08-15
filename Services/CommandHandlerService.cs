@@ -1,15 +1,14 @@
-﻿using System;
-using System.Linq;
+﻿using DirtBot.Extensions;
+using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using DirtBot.Extensions;
 using Color = System.Drawing.Color;
-using DirtBot.Translation;
-using SmartFormat;
 
 namespace DirtBot.Services
 {
@@ -49,7 +48,7 @@ namespace DirtBot.Services
         {
             // Source filter
             if (arg.Source != MessageSource.User) return;
-            var message = (SocketUserMessage) arg;
+            var message = (SocketUserMessage)arg;
 
             // Get the prefix
             string pfx;
@@ -87,7 +86,8 @@ namespace DirtBot.Services
                 message.Channel.SendMessageAsync(embed: new EmbedBuilder()
                     .WithTitle(ts.GetMessage("commands/prefix:embed_title"))
                     .WithColor(0x00ff00)
-                    .WithDescription(ts.GetMessage("commands/prefix:my_prefix_is").FormatSmart(PrefixManagerService.PrettyPrefix(pfx)))
+                    .WithDescription(MessageFormatter.Format(ts.GetMessage("commands/prefix:my_prefix_is"),
+                        PrefixManagerService.PrettyPrefix(pfx)))
                     .Build()).Release();
             }
         }
@@ -118,21 +118,25 @@ namespace DirtBot.Services
             log.Write($"Message from {arg.Author}: {content}", Color.DarkGray);
         }
 
-        private Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext ctx, IResult result)
+        private async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext ctx, IResult result)
         {
-            if (result.IsSuccess)
+            // Some error occured in command execution
+            if (!result.IsSuccess)
             {
-                var logger = Logger.GetLogger("Commands");
-                var sb = new StringBuilder();
-
-                if (!command.IsSpecified)
-                    sb.Append("Unspecified command: ");
-                if (result.IsSuccess)
-                    sb.Append("Executed command: ");
-                sb.AppendLine(GetExecutionInfo(ctx));
-                logger.Info(sb.ToString());
+                var ts = await TranslationManager.CreateFor(ctx.Channel);
+                await ctx.Channel.SendMessageAsync(ts.GetMessage(result.ErrorReason)).ConfigureAwait(false);
             }
-            return Task.CompletedTask;
+
+            // Log
+            var logger = Logger.GetLogger("Commands");
+            var sb = new StringBuilder();
+
+            if (!command.IsSpecified)
+                sb.Append("Unspecified command: ");
+            else
+                sb.Append("Executed command: ");
+            sb.AppendLine(GetExecutionInfo(ctx));
+            logger.Info(sb.ToString());
         }
 
         private string GetExecutionInfo(ICommandContext ctx)

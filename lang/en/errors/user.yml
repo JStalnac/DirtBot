@@ -1,0 +1,3 @@
+﻿permission_administrator: 'You need to be an administrator to run that command'
+permission_manage_guild: 'You need the Manage Guild permission to run that command'
+permission_manage_messages: 'You need permission to Manage Messages to do that'

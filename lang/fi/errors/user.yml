@@ -1,0 +1,3 @@
+﻿permission_administrator: 'Sinun pitää olla järjestelmänvalvoja suorittaaksesi tämän komennon!'
+permission_manage_guild: 'Tarvitset oikeuden hallita palvelinta suorittaaksesi tämän komennon!'
+permission_manage_messages: 'Tarvitset oikeuden hallinnoida viestejä suorittaaksesi tämän komennon!'

@@ -1,0 +1,3 @@
+﻿embed_title: 'Language Settings'
+language_set_message: 'Language set to **{0}**'
+error_unknown_language: "I don't know what language that is"

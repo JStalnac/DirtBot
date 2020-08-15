@@ -1,9 +1,8 @@
-﻿using Discord.Commands;
-using DirtBot.Translation;
-using System.Threading.Tasks;
+﻿using DirtBot.Translation;
 using Discord;
+using Discord.Commands;
 using System.Globalization;
-using SmartFormat;
+using System.Threading.Tasks;
 
 namespace DirtBot.Commands
 {
@@ -13,6 +12,8 @@ namespace DirtBot.Commands
     public class LanguageCommand : ModuleBase<SocketCommandContext>
     {
         [Command("set-language")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "Perms", ErrorMessage = "errors/user:permission_administrator")]
+        [RequireUserPermission(GuildPermission.ManageGuild, Group = "Perms", ErrorMessage = "errors/user:permission_manage_guild")]
         public async Task SetLanguage(string language)
         {
             // TODO: Check permissions
@@ -25,9 +26,8 @@ namespace DirtBot.Commands
             {
                 lang = new CultureInfo(language);
                 eb.Color = new Color(0x00ff00);
-                eb.Description = ts.GetMessage("commands/language:language_set_message").FormatSmart(lang.TwoLetterISOLanguageName);
+                eb.Description = MessageFormatter.Format(ts.GetMessage("commands/language:language_set_message"), lang.TwoLetterISOLanguageName);
 
-                Logger.GetLogger(this).Info(lang.TwoLetterISOLanguageName);
                 await TranslationManager.SetLanguageAsync(TranslationManager.GetId(Context.Channel), lang);
             }
             catch (CultureNotFoundException)

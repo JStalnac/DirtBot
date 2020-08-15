@@ -1,0 +1,8 @@
+﻿embed_title: 'Prefix'
+my_prefix_is: 'Prefixini on **{0}**'
+prefix_set_message: "Palvelimen prefix on nyt **{0}**"
+error_private_messages: 
+    - "Et voi vaihtaa prefixiä yksityisviesteissä."
+    - "Olemme yksityisviesteissä, joten et voi vaihtaa prefixiä"
+error_same_prefix: "Tuo on palvelimen tämänhetkinen prefix!"
+quote_hint: 'Vinkki: Voit lisätä **"** tekstin ympärille, jotta saat prefixiisi välejä```"Tällä tavalla :o"```'

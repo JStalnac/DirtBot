@@ -1,0 +1,5 @@
+﻿# 0: Deleted messages
+delete_success:
+    - 'I deleted {0} messages'
+    - 'Messages deleted: {0}'
+delet_this_success: 'There you go!'

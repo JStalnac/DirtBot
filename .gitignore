@@ -6,7 +6,7 @@ Properties/
 *.user
 
 # Config files
-*.yml
+config.yml
 
 # EF Core
 Migrations/

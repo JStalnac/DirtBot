@@ -1,12 +1,11 @@
-﻿using System;
-using System.Text;
-using Discord.Commands;
-using System.Threading.Tasks;
-using DirtBot.Extensions;
+﻿using DirtBot.Extensions;
 using DirtBot.Services;
-using Discord;
 using DirtBot.Translation;
-using SmartFormat;
+using Discord;
+using Discord.Commands;
+using System;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DirtBot.Commands
 {
@@ -21,6 +20,8 @@ namespace DirtBot.Commands
 
         [Command("set_prefix")]
         [Alias("prefix")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "Perms", ErrorMessage = "errors/user:permission_administrator", NotAGuildErrorMessage = "errors:not_a_guild")]
+        [RequireUserPermission(GuildPermission.ManageGuild, Group = "Perms", ErrorMessage = "errors/user:permission_manage_guild", NotAGuildErrorMessage = "errors:not_a_guild")]
         public async Task Prefix(string prefix, [Remainder] string args = null)
         {
             // Prepare reply
@@ -52,10 +53,10 @@ namespace DirtBot.Commands
                     await pm.CachePrefix(Context.Guild.Id, prefix);
 
                     // Send the info message here for seemingly better performance. The prefix is cached in Redis so it will still work.
-                    eb.Title = ts.GetMessage("commands/prefix:embed_prefix");
+                    eb.Title = ts.GetMessage("commands/prefix:embed_title");
                     eb.Color = new Color(0x00ff00);
-                    reply.AppendLine(ts.GetMessage("commands/prefix:prefix_set_message")
-                        .FormatSmart(PrefixManagerService.PrettyPrefix(prefix)));
+                    reply.AppendLine(MessageFormatter.Format(ts.GetMessage("commands/prefix:prefix_set_message"),
+                        PrefixManagerService.PrettyPrefix(prefix)));
 
                     // Hint about spaces
                     if (!(args is null))
@@ -103,7 +104,7 @@ namespace DirtBot.Commands
             eb.Color = new Color(0x00ff00);
 
             // Send a message
-            reply.AppendLine(ts.GetMessage("commands/prefix:my_prefix_is").FormatSmart(PrefixManagerService.PrettyPrefix(await prefixGet)));
+            reply.AppendLine(MessageFormatter.Format(ts.GetMessage("commands/prefix:my_prefix_is"), PrefixManagerService.PrettyPrefix(await prefixGet)));
             if (Context.IsPrivate)
                 reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
             eb.Description = reply.ToString();

@@ -1,0 +1,5 @@
+﻿# 0: Deleted messages
+delete_success:
+    - 'Poistin {0} viestiä'
+    - 'Viestejä poistettu: {0}'
+delet_this_success: 'Ole hyvä!'

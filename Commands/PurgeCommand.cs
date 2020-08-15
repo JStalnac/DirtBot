@@ -1,33 +1,40 @@
 ﻿using DirtBot.Extensions;
+using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DirtBot.Commands
 {
     public class PurgeCommand : ModuleBase<SocketCommandContext>
     {
-        // TODO: Modernize and translate
         [Command("purge")]
-        [Alias("purge", "delet")]
-        [RequireBotPermission(ChannelPermission.ManageMessages,
-            ErrorMessage = "En voi poistaa viestejä tällä kanavalla")]
-        [RequireUserPermission(ChannelPermission.ManageMessages, ErrorMessage = "Et sää sais poistaa näitä edes ite!")]
+        [Alias("purge", "delet", "delete")]
+        [RequireBotPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/bot:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
+        [RequireUserPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/user:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
         public async Task Purge(int limit, [Remainder] string args = null)
         {
+            // Delete the command
             await Context.Message.DeleteAsync();
+            // Get messages and delete
             var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
-            (Context.Channel as ITextChannel)?.DeleteMessagesAsync(messages).Release();
+            await (Context.Channel as ITextChannel)?.DeleteMessagesAsync(messages);
+            // Respond
+            var ts = await TranslationManager.CreateFor(Context.Channel);
+            await Context.Channel.SendMessageFormatted(ts.GetMessage("commands/purge:delete_success"), args: messages.Count());
         }
 
         [Command("delet this")]
         [Alias("delet this")]
-        [RequireBotPermission(ChannelPermission.ManageMessages,
-            ErrorMessage = "Hehehe poistaisin tuon viestin mieluusti, mutta minulla ei ole oikeutta siihen hihih")]
+        [RequireBotPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/bot:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
         public async Task Purge([Remainder] string args = null)
         {
+            // Delete message
             await Context.Message.DeleteAsync();
-            var m = await ReplyAsync("Ole hyvä :)");
+            // Respond
+            var ts = await TranslationManager.CreateFor(Context.Channel);
+            var m = await ReplyAsync(ts.GetMessage("commands/purge:delet_this_success"));
             m.DeleteAfterDelay(5000).Release();
         }
     }

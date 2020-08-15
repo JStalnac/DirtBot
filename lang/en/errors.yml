@@ -1,0 +1,4 @@
+﻿permission_denied: "You can't do that"
+not_a_guild: 'This command needs to executed in a guild'
+module_disabled: 'This module is disabled in this guild'
+module_disabled_global: 'This module is disabled globally'

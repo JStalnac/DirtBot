@@ -1,4 +1,10 @@
-﻿using System;
+﻿using DirtBot.Database;
+using DirtBot.Extensions;
+using Discord;
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,14 +12,6 @@ using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DirtBot.Database;
-using DirtBot.Extensions;
-using DirtBot.Services;
-using Discord;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
-using MySql.Data.MySqlClient;
-using StackExchange.Redis;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
@@ -35,16 +33,18 @@ namespace DirtBot.Translation
             if (language is null)
                 throw new ArgumentNullException(nameof(language));
 
+            // Because of this implementation TranslationManagers shouldn't be stored static because the language may update
             if (Data.TryGetValue(language, out var td))
                 TranslationData = td;
             else if (Data.TryGetValue(DefaultLanguage, out var dd))
                 TranslationData = dd;
+
             // else The language may be null but then everything is broken
             Default = language == DefaultLanguage;
         }
 
         /// <summary>
-        /// Creates a new translation instance for the channel.
+        /// Creates a new translation instance for the channel. Null channel returns the default language
         /// </summary>
         /// <param name="channel"></param>
         /// <returns></returns>
@@ -75,7 +75,7 @@ namespace DirtBot.Translation
 
             // Get the key and split the path
             string key = match.Groups[2].Value;
-            var pathParts = new Queue<string>(match.Groups[1].Value.Split('/'));
+            var pathParts = match.Groups[1].Value.Split('/');
             // Regex not smart enough
             if (pathParts.Any(x => x == ""))
                 throw new FormatException("Invalid path format. Empty path part");
@@ -114,7 +114,7 @@ namespace DirtBot.Translation
         /// <param name="path"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        private IEnumerable<string> SearchMessage(TranslationDataDirectory td, Queue<string> path, string key)
+        private IEnumerable<string> SearchMessage(TranslationDataDirectory td, string[] path, string key)
         {
             if (td is null) throw new ArgumentNullException(nameof(td));
             if (path is null) throw new ArgumentNullException(nameof(path));
@@ -122,31 +122,27 @@ namespace DirtBot.Translation
 
             var dir = td;
 
-            while (true)
+            for (int i = 0; i < path.Length; i++)
             {
-                // Take path
-                if (!path.TryDequeue(out string p))
-                    return null;
-
                 // If this is the last part of the path
-                if (path.Count == 0)
+                if (i == path.Length - 1)
                 {
                     // Get file
-                    if (dir.Data.TryGetValue(p, out var d))
+                    if (dir.Data.TryGetValue(path[i], out var d))
                     {
                         // Check key
                         if (d.TryGetValue(key, out var value)) return value;
                     }
                 }
                 // Not the last part
-                else if (dir.Directories.TryGetValue(p, out var d))
+                else if (dir.Directories.TryGetValue(path[i], out var d))
                 {
                     // We have a path that continues with this part
                     dir = d;
                     continue;
                 }
-                return null;
             }
+            return null;
         }
 
         public bool HasLanguage(CultureInfo cultureInfo)
@@ -271,7 +267,7 @@ namespace DirtBot.Translation
                         // Single key
                         if (dataPair.Value is string)
                         {
-                            result.Add(dataPair.Key, new []{ (string)dataPair.Value });
+                            result.Add(dataPair.Key, new[] { (string)dataPair.Value });
                             continue;
                         }
                         // Collection
@@ -283,7 +279,7 @@ namespace DirtBot.Translation
                             foreach (object o in e)
                             {
                                 if (o is string)
-                                    r.Add((string) o);
+                                    r.Add((string)o);
                                 else
                                 {
                                     valid = false;
@@ -339,7 +335,7 @@ namespace DirtBot.Translation
         public static async Task<CultureInfo> GetLanguageAsync(ulong id)
         {
             if (id == 0)
-                return new CultureInfo("en");
+                return DefaultLanguage;
 
             try
             {

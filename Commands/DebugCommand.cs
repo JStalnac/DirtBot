@@ -52,6 +52,7 @@ namespace DirtBot.Commands
         }
 
         [Command("reload-translations")]
+        [RequireOwner]
         public async Task ReloadTranslations()
         {
             await ReplyAsync("Reloading...");
@@ -66,6 +67,13 @@ namespace DirtBot.Commands
                 return;
             }
             await ReplyAsync("Reloaded! Check the log for possible warnings");
+        }
+
+        [Command("error")]
+        [Alias("err")]
+        public Task ErrorCommand()
+        {
+            throw new Exception("Error!");
         }
     }
 }
