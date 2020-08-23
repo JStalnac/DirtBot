@@ -1,58 +1,81 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using DirtBot.Services;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Threading.Tasks;
 
 namespace DirtBot.Commands
 {
     [Group("debug")]
+    [RequireOwner]
     public class DebugCommand : ModuleBase<SocketCommandContext>
     {
-        [Command("set-loglevel")]
-        [RequireOwner]
-        public async Task SetLogLevel([Remainder]string level)
+        [Group("test")]
+        public class Test : ModuleBase<SocketCommandContext>
         {
-            LogLevel? logLevel = null;
-            switch (level)
+            [Command]
+            public async Task DefaultTestCommand()
             {
-                case "debug":
-                    logLevel = LogLevel.Debug;
-                    break;
-                case "info":
-                    logLevel = LogLevel.Info;
-                    break;
-                case "warn":
-                    logLevel = LogLevel.Warning;
-                    break;
-                case "error":
-                    logLevel = LogLevel.Error;
-                    break;
-                case "critical":
-                    logLevel = LogLevel.Critical;
-                    break;
+                await ReplyAsync("Default test!");
             }
 
-            var eb = new EmbedBuilder();
-            eb.Title = "Log Level";
-            if (logLevel == null)
+            [Command("command")]
+            public async Task TestCommand()
             {
-                eb.Color = new Color(0xff0000);
-                eb.Description = $"Unknown log level **'{level}'**\nPossible values: `debug`, `info`, `warn`, `error`, `critical`";
+                await ReplyAsync("Test");
             }
+        }
+
+        [Command("set-loglevel")]
+        public async Task SetLogLevel([Remainder] string level = null)
+        {
+            var eb = new EmbedBuilder()
+                .WithTitle("Log Level");
+
+            string possibleValues = "Possible values: `debug`, `info`, `warn`, `error`, `critical`";
+            if (level is null)
+                eb.Description = possibleValues;
             else
             {
-                Logger.GetLogger("Log Level").Important($"Log level set to {logLevel}");
-                Logger.SetLogLevel(logLevel.Value);
-                eb.Color = new Color(0x00ff00);
-                eb.Description = $"Set log level to {logLevel}";
+                LogLevel? logLevel = null;
+                switch (level)
+                {
+                    case "debug":
+                        logLevel = LogLevel.Debug;
+                        break;
+                    case "info":
+                        logLevel = LogLevel.Info;
+                        break;
+                    case "warn":
+                        logLevel = LogLevel.Warning;
+                        break;
+                    case "error":
+                        logLevel = LogLevel.Error;
+                        break;
+                    case "critical":
+                        logLevel = LogLevel.Critical;
+                        break;
+                }
+
+                if (logLevel == null)
+                {
+                    eb.Color = EmbedFactory.Error;
+                    eb.Description = $"Unknown log level **'{level}'**\n{possibleValues}";
+                }
+                else
+                {
+                    Logger.GetLogger("Log Level").Important($"Log level set to {logLevel}");
+                    Logger.SetLogLevel(logLevel.Value);
+                    eb.Color = EmbedFactory.Success;
+                    eb.Description = $"Set log level to {logLevel}";
+                }
             }
 
             await ReplyAsync(embed: eb.Build());
         }
 
         [Command("reload-translations")]
-        [RequireOwner]
         public async Task ReloadTranslations()
         {
             await ReplyAsync("Reloading...");
@@ -70,7 +93,6 @@ namespace DirtBot.Commands
         }
 
         [Command("error")]
-        [Alias("err")]
         public Task ErrorCommand()
         {
             throw new Exception("Error!");

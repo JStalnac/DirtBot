@@ -1,4 +1,5 @@
 ﻿embed_title: 'Prefix'
+parameter_prefix: 'The new prefix. If empty I tell you what prefix I use'
 my_prefix_is: 'My prefix is **{0}**'
 prefix_set_message: "The server's prefix is now **{0}**"
 error_private_messages: 

@@ -1,4 +1,5 @@
-﻿using DirtBot.Extensions;
+﻿using DirtBot.Attributes;
+using DirtBot.Extensions;
 using DirtBot.Services;
 using DirtBot.Translation;
 using Discord;
@@ -18,23 +19,45 @@ namespace DirtBot.Commands
             pm = prefixManager;
         }
 
-        [Command("set_prefix")]
-        [Alias("prefix")]
+        [Command("prefix")]
+        [Tags("settings", "system")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "Perms", ErrorMessage = "errors/user:permission_administrator", NotAGuildErrorMessage = "errors:not_a_guild")]
         [RequireUserPermission(GuildPermission.ManageGuild, Group = "Perms", ErrorMessage = "errors/user:permission_manage_guild", NotAGuildErrorMessage = "errors:not_a_guild")]
-        public async Task Prefix(string prefix, [Remainder] string args = null)
+        public async Task Prefix([Summary("commands/prefix:parameter_prefix")][Remainder] string prefix = null)
         {
             // Prepare reply
-            var eb = new EmbedBuilder();
+            EmbedBuilder eb;
+            //var eb = new EmbedBuilder();
             var reply = new StringBuilder();
             var ts = await TranslationManager.CreateFor(Context.Channel);
+
+            // Get the prefix
+            if (prefix is null)
+            {
+                // Get prefix
+                var prefixGet = pm.GetPrefixAsync(Context.Guild?.Id);
+
+                // Prepare message
+                eb = EmbedFactory.CreateError()
+                    .WithTitle(ts.GetMessage("commands/prefix:embed_title"));
+
+                // Send a message
+                reply.AppendLine(MessageFormatter.Format(ts.GetMessage("commands/prefix:my_prefix_is"), PrefixManagerService.PrettyPrefix(await prefixGet)));
+                if (Context.IsPrivate)
+                    reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
+                eb.Description = reply.ToString();
+                await ReplyAsync(embed: eb.Build());
+
+                // Return!
+                return;
+            }
 
             // Check if in guild
             if (Context.Guild is null)
             {
                 // No
-                eb.Title = ts.GetMessage("errors:permission_denied");
-                eb.Color = new Color(0xff0000);
+                eb = EmbedFactory.CreateError()
+                    .WithTitle(ts.GetMessage("errors:permission_denied"));
                 reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
             }
             else
@@ -43,8 +66,8 @@ namespace DirtBot.Commands
                 string currentPrefix = await pm.GetPrefixAsync(Context.Guild.Id);
                 if (currentPrefix == prefix)
                 {
-                    eb.Title = ts.GetMessage("errors:permission_denied");
-                    eb.Color = new Color(0xff0000);
+                    eb = EmbedFactory.CreateError()
+                        .WithTitle(ts.GetMessage("errors:permission_denied"));
                     reply.AppendLine(ts.GetMessage("commands/prefix:error_same_prefix"));
                 }
                 else
@@ -53,17 +76,10 @@ namespace DirtBot.Commands
                     await pm.CachePrefix(Context.Guild.Id, prefix);
 
                     // Send the info message here for seemingly better performance. The prefix is cached in Redis so it will still work.
-                    eb.Title = ts.GetMessage("commands/prefix:embed_title");
-                    eb.Color = new Color(0x00ff00);
+                    eb = EmbedFactory.CreateSuccess()
+                        .WithTitle(ts.GetMessage("commands/prefix:embed_title"));
                     reply.AppendLine(MessageFormatter.Format(ts.GetMessage("commands/prefix:prefix_set_message"),
                         PrefixManagerService.PrettyPrefix(prefix)));
-
-                    // Hint about spaces
-                    if (!(args is null))
-                    {
-                        reply.AppendLine();
-                        reply.AppendLine(ts.GetMessage("commands/prefix:quote_hint"));
-                    }
 
                     // Send message
                     eb.Description = reply.ToString();
@@ -85,28 +101,6 @@ namespace DirtBot.Commands
             }
 
             // Send message
-            eb.Description = reply.ToString();
-            await ReplyAsync(embed: eb.Build());
-        }
-
-        [Command("get_prefix")]
-        [Alias("prefix")]
-        public async Task Prefix()
-        {
-            // Get prefix
-            var prefixGet = pm.GetPrefixAsync(Context.Guild?.Id);
-            var ts = await TranslationManager.CreateFor(Context.Channel);
-
-            // Prepare message
-            var eb = new EmbedBuilder();
-            var reply = new StringBuilder();
-            eb.Title = ts.GetMessage("commands/prefix:embed_title");
-            eb.Color = new Color(0x00ff00);
-
-            // Send a message
-            reply.AppendLine(MessageFormatter.Format(ts.GetMessage("commands/prefix:my_prefix_is"), PrefixManagerService.PrettyPrefix(await prefixGet)));
-            if (Context.IsPrivate)
-                reply.AppendLine(ts.GetMessage("commands/prefix:error_private_messages"));
             eb.Description = reply.ToString();
             await ReplyAsync(embed: eb.Build());
         }

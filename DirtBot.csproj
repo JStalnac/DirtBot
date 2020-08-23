@@ -27,19 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Remove="lang\en\commands\language.yml" />
-    <None Remove="lang\en\commands\purge.yml" />
-    <None Remove="lang\en\errors\bot.yml" />
-    <None Remove="lang\en\errors\user.yml" />
-    <None Remove="lang\fi\commands\language.yml" />
-    <None Remove="lang\fi\commands\prefix.yml" />
-    <None Remove="lang\fi\commands\purge.yml" />
-    <None Remove="lang\fi\errors.yml" />
-    <None Remove="lang\fi\errors\bot.yml" />
-    <None Remove="lang\fi\errors\user.yml" />
-    <None Remove="lang\fi\general.yml" />
-    <None Remove="lang\en\commands\prefix.yml" />
-    <None Remove="lang\en\errors.yml" />
+    <None Remove="lang\fi\help.yml" />
   </ItemGroup>
   
 </Project>

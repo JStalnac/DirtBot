@@ -78,6 +78,7 @@ namespace DirtBot
                 Services.GetRequiredService<PrefixManagerService>()
                     .Initialize((string)Configuration.GetValue("prefix"));
                 Services.GetRequiredService<CategoryManagerService>();
+                Services.GetRequiredService<HelpProviderService>();
 
                 log = Logger.GetLogger<TranslationManager>();
                 log.Info("Loading translations");
@@ -186,6 +187,7 @@ namespace DirtBot
                 .AddSingleton<CommandHandlerService>()
                 .AddSingleton<PrefixManagerService>()
                 .AddSingleton<CategoryManagerService>()
+                .AddSingleton<HelpProviderService>()
                 // Database and Redis
                 .AddDbContext<DatabaseContext>()
                 .AddSingleton(ConnectRedis((string) Configuration.GetValue("redis_url")));

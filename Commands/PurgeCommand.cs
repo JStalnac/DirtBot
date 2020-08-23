@@ -1,4 +1,6 @@
-﻿using DirtBot.Extensions;
+﻿using DirtBot.Attributes;
+using DirtBot.Attributes.Preconditions;
+using DirtBot.Extensions;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
@@ -11,6 +13,7 @@ namespace DirtBot.Commands
     {
         [Command("purge")]
         [Alias("purge", "delet", "delete")]
+        [Tags("moderation")]
         [RequireBotPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/bot:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
         [RequireUserPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/user:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
         public async Task Purge(int limit, [Remainder] string args = null)
@@ -27,6 +30,8 @@ namespace DirtBot.Commands
 
         [Command("delet this")]
         [Alias("delet this")]
+        [Categories("fun")]
+        [Tags("fun")]
         [RequireBotPermission(ChannelPermission.ManageMessages, ErrorMessage = "errors/bot:permission_manage_messages", NotAGuildErrorMessage = "errors:not_a_guild")]
         public async Task Purge([Remainder] string args = null)
         {

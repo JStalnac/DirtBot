@@ -1,4 +1,5 @@
-﻿using DirtBot.Extensions;
+﻿using DirtBot.Attributes;
+using DirtBot.Extensions;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
@@ -83,9 +84,8 @@ namespace DirtBot.Services
                 Logger.GetLogger("Commands").Debug($"Executing prefix get with default prefix: {GetExecutionInfo(context)}");
                 var ts = await TranslationManager.CreateFor(context.Channel);
 
-                message.Channel.SendMessageAsync(embed: new EmbedBuilder()
+                message.Channel.SendMessageAsync(embed: EmbedFactory.CreateSuccess()
                     .WithTitle(ts.GetMessage("commands/prefix:embed_title"))
-                    .WithColor(0x00ff00)
                     .WithDescription(MessageFormatter.Format(ts.GetMessage("commands/prefix:my_prefix_is"),
                         PrefixManagerService.PrettyPrefix(pfx)))
                     .Build()).Release();

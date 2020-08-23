@@ -1,4 +1,5 @@
 ﻿embed_title: 'Prefix'
+parameter_prefix: 'Uusi prefix. Jos tyhjä, kerron sinulle mitä prefixiä käytän'
 my_prefix_is: 'Prefixini on **{0}**'
 prefix_set_message: "Palvelimen prefix on nyt **{0}**"
 error_private_messages: 
