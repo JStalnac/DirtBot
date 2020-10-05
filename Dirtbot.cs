@@ -180,7 +180,8 @@ namespace DirtBot
                 }))
                 .AddSingleton(new CommandService(new CommandServiceConfig
                 {
-                    DefaultRunMode = RunMode.Async
+                    DefaultRunMode = RunMode.Async,
+                    
                 }))
                 .AddSingleton<HttpClient>()
                 // Services

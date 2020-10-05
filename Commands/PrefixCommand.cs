@@ -38,7 +38,7 @@ namespace DirtBot.Commands
                 var prefixGet = pm.GetPrefixAsync(Context.Guild?.Id);
 
                 // Prepare message
-                eb = EmbedFactory.CreateError()
+                eb = EmbedFactory.CreateSuccess()
                     .WithTitle(ts.GetMessage("commands/prefix:embed_title"));
 
                 // Send a message
