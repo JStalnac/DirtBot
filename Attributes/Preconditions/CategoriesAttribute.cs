@@ -30,7 +30,7 @@ namespace DirtBot.Attributes.Preconditions
             if (context.Guild is null)
                 return PreconditionResult.FromSuccess();
             // In a guild
-            var cm = Dirtbot.Services.GetRequiredService<CategoryManagerService>();
+            var cm = Program.Services.GetRequiredService<CategoryManagerService>();
             var globalDisabled = await cm.GetDisabledCategoriesGlobalAsync();
 
             if (globalDisabled.Any(x => Categories.Any(c => x == c)))

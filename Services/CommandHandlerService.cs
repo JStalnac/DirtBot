@@ -1,48 +1,45 @@
-﻿using DirtBot.Attributes;
-using DirtBot.Extensions;
+﻿using DirtBot.Extensions;
 using DirtBot.Translation;
 using Discord;
+using Discord.Addons.Hosting;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Color = System.Drawing.Color;
 
 namespace DirtBot.Services
 {
-    public class CommandHandlerService : ServiceBase
+    public class CommandHandlerService : InitializedService
     {
-        private static bool initialized;
-        private PrefixManagerService pm;
+        private readonly IServiceProvider services;
+        private readonly DiscordSocketClient client;
+        private readonly CommandService commands;
+        private readonly PrefixManagerService pm;
 
-        public CommandHandlerService(PrefixManagerService pm)
+        public CommandHandlerService(IServiceProvider services, DiscordSocketClient client, CommandService commands, PrefixManagerService pm)
         {
+            this.services = services;
+            this.client = client;
+            this.commands = commands;
             this.pm = pm;
         }
 
-        /// <summary>
-        /// Initializes the command handler and adds all the commands from the current assembly
-        /// </summary>
-        /// <param name="pfx">Default prefix to use. Also used in private and group messages.</param>
-        /// <returns></returns>
-        public async Task InitializeAsync()
+        public override async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            if (initialized)
-                return;
-            initialized = true;
-            Commands.CommandExecuted += CommandExecutedAsync;
-            Client.MessageReceived += msg =>
+            commands.CommandExecuted += CommandExecutedAsync;
+            client.MessageReceived += msg =>
             {
                 // Free the Gateway thread from the command task.
                 MessageLogger(msg);
                 ProcessCommandAsync(msg).Release();
                 return Task.CompletedTask;
             };
-
-            await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), Services);
+            await commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
         }
 
         private async Task ProcessCommandAsync(SocketMessage arg)
@@ -71,16 +68,16 @@ namespace DirtBot.Services
                 // Refresh the cached prefix
                 if (message.Channel is IGuildChannel c)
                     pm.RestoreCache(c.GuildId).Release();
-                var context = new SocketCommandContext(Client, message);
+                var context = new SocketCommandContext(client, message);
                 // Log message for debugging
                 Logger.GetLogger("Commands").Debug($"Executing command: {GetExecutionInfo(context)}");
                 // Execute command
-                await Commands.ExecuteAsync(context, argPos, Services);
+                await commands.ExecuteAsync(context, argPos, services);
             }
             else if (message.Content.TrimEnd() == $"{pm.DefaultPrefix}prefix")
             {
                 // Info
-                var context = new SocketCommandContext(Client, message);
+                var context = new SocketCommandContext(client, message);
                 Logger.GetLogger("Commands").Debug($"Executing prefix get with default prefix: {GetExecutionInfo(context)}");
                 var ts = await TranslationManager.CreateFor(context.Channel);
 
@@ -97,19 +94,9 @@ namespace DirtBot.Services
             return GetPrefix(ctx.Message);
         }
 
-        public Task<string> GetPrefix(IMessage message)
-        {
-            if (!initialized)
-                return null;
-            return pm.GetPrefixAsync((message.Channel as IGuildChannel)?.GuildId);
-        }
+        public Task<string> GetPrefix(IMessage message) => pm.GetPrefixAsync((message.Channel as IGuildChannel)?.GuildId);
 
-        public Task<string> GetPrefix(ulong guildId)
-        {
-            if (!initialized)
-                return null;
-            return pm.GetPrefixAsync(guildId);
-        }
+        public Task<string> GetPrefix(ulong guildId) => pm.GetPrefixAsync(guildId);
 
         private static void MessageLogger(SocketMessage arg)
         {

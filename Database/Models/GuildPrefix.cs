@@ -9,14 +9,13 @@ namespace DirtBot.Database.Models
         /// The id of the guild that this prefix is used with.
         /// </summary>
         [Key]
-        [Column(TypeName = "BIGINT")]
         public ulong Id { get; set; }
 
         /// <summary>
         /// The prefix of the guild.
         /// </summary>
-        [Column(TypeName = "VARCHAR(30)")]
         [Required]
+        [Column(TypeName = "VARCHAR(30)")]
         public string Prefix { get; set; }
     }
 }

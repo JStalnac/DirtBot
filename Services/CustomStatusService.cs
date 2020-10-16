@@ -1,18 +1,30 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using DirtBot.Extensions;
+using Discord.Addons.Hosting;
+using Discord.WebSocket;
 
 namespace DirtBot.Services
 {
-    public class CustomStatusService : ServiceBase
+    public class CustomStatusService : InitializedService
     {
-        public CustomStatusService()
+        private readonly DiscordSocketClient client;
+
+        public CustomStatusService(DiscordSocketClient client)
         {
-            Client.Ready += () =>
+            this.client = client;
+        }
+
+        public override Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            client.Ready += () =>
             {
                 // Set the status of the bot
-                Client.SetGameAsync("Being a good dirt blob").Release();
+                // TODO: Make settings
+                client.SetGameAsync("Being a good dirt blob").Release();
                 return Task.CompletedTask;
             };
+            return Task.CompletedTask;
         }
     }
 }

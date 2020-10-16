@@ -1,23 +1,35 @@
-﻿using System;
+﻿using DirtBot.Database;
+using DirtBot.Database.Models;
+using DirtBot.Extensions;
+using DirtBot.Services.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DirtBot.Database;
-using DirtBot.Extensions;
-using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
-using StackExchange.Redis;
 
 namespace DirtBot.Services
 {
-    public class PrefixManagerService : ServiceBase
+    public class PrefixManagerService
     {
-        public string DefaultPrefix { get; private set; }
+        public string DefaultPrefix { get => options.DefaultPrefix; }
 
-        public void Initialize(string defaultPrefix)
+        private readonly IServiceProvider services;
+        private readonly ConnectionMultiplexer redis;
+        private readonly PrefixManagerOptions options;
+
+        public PrefixManagerService(IServiceProvider services, ConnectionMultiplexer redis, IOptions<PrefixManagerOptions> options)
         {
-            if (String.IsNullOrEmpty(defaultPrefix?.TrimEnd()))
-                throw new ArgumentNullException(nameof(defaultPrefix));
-            DefaultPrefix = defaultPrefix;
+            if (services is null)
+                throw new ArgumentNullException(nameof(services));
+            if (options is null)
+                throw new ArgumentNullException(nameof(options));
+            this.services = services;
+            this.redis = redis;
+            this.options = options.Value;
         }
 
         /// <summary>
@@ -31,9 +43,9 @@ namespace DirtBot.Services
         {
             // Direct messages don't have custom prefixes
             if (!guild.HasValue)
-                return DefaultPrefix;
+                return options.DefaultPrefix;
             // Get a cached prefix from Redis
-            var rdb = Redis.GetDatabase(0);
+            var rdb = redis.GetDatabase(0);
             string result = await rdb.StringGetAsync($"prefixes:{guild}");
 
             // Key stored in Redis
@@ -41,9 +53,9 @@ namespace DirtBot.Services
                 return result;
 
             // Get the prefix from MySql database;
-            using (var db = new DatabaseContext())
+            using (var db = services.GetRequiredService<DatabaseContext>())
                 result = (await AsyncEnumerable.FirstOrDefaultAsync(db.Prefixes, p => p.Id == guild))?.Prefix;
-            result ??= DefaultPrefix;
+            result ??= options.DefaultPrefix;
             CachePrefix((ulong)guild, result).Release();
             return result;
         }
@@ -64,12 +76,34 @@ namespace DirtBot.Services
             if (prefix.Length > 30)
                 throw new ArgumentException("Prefix must be less than 100 characters long", nameof(prefix));
 
-            using (var db = new DatabaseContext())
+            using (var db = services.GetRequiredService<DatabaseContext>())
             {
-                string escaped = MySqlHelper.EscapeString(prefix);
-                int changed = await db.Database.ExecuteSqlRawAsync($"INSERT INTO prefixes(Id, Prefix) VALUES ({guild}, '{escaped}') ON DUPLICATE KEY UPDATE Prefix = '{escaped}'").ConfigureAwait(false);
-                if (changed == 0)
-                    Logger.GetLogger(this).Warning($"Updated prefix but zero rows changed in database. Guild: {guild} Prefix: {prefix}");
+                var g = await ((IAsyncEnumerable<GuildPrefix>)db.Prefixes).FirstOrDefaultAsync(x => x.Id == guild);
+                if (g is null)
+                    await db.AddAsync(new GuildPrefix
+                    {
+                        Id = guild.Value,
+                        Prefix = prefix
+                    });
+                else
+                {
+                    g.Prefix = prefix;
+                    db.Entry(g).State = EntityState.Modified;
+                }
+
+                try
+                {
+                    await db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    Logger.GetLogger(this).Warning($"Failed to update prefix for guild {guild}. Prefix: '{prefix}'");
+                }
+
+                //string escaped = MySqlHelper.EscapeString(prefix);
+                //int changed = await db.Database.ExecuteSqlRawAsync($"INSERT INTO prefixes(Id, Prefix) VALUES ({guild}, '{escaped}') ON DUPLICATE KEY UPDATE Prefix = '{escaped}'").ConfigureAwait(false);
+                //if (changed == 0)
+                //    Logger.GetLogger(this).Warning($"Updated prefix but zero rows changed in database. Guild: {guild} Prefix: {prefix}");
             }
         }
 
@@ -82,7 +116,7 @@ namespace DirtBot.Services
         public async Task CachePrefix(ulong guild, string prefix)
         {
             // Cache the prefix for the guild in Redis.
-            await Redis.GetDatabase(0).StringSetAsync($"prefixes:{guild}", prefix, TimeSpan.FromMinutes(15),
+            await redis.GetDatabase(0).StringSetAsync($"prefixes:{guild}", prefix, TimeSpan.FromMinutes(15),
                 flags: CommandFlags.FireAndForget);
         }
 
@@ -93,7 +127,7 @@ namespace DirtBot.Services
         /// <returns></returns>
         public async Task RestoreCache(ulong guild)
         {
-            await Redis.GetDatabase(0).KeyExpireAsync($"prefixes:{guild}", TimeSpan.FromMinutes(15),
+            await redis.GetDatabase(0).KeyExpireAsync($"prefixes:{guild}", TimeSpan.FromMinutes(15),
                 flags: CommandFlags.FireAndForget);
         }
 

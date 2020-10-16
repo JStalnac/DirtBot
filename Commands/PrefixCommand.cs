@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DirtBot.Commands
@@ -27,7 +28,6 @@ namespace DirtBot.Commands
         {
             // Prepare reply
             EmbedBuilder eb;
-            //var eb = new EmbedBuilder();
             var reply = new StringBuilder();
             var ts = await TranslationManager.CreateFor(Context.Channel);
 
@@ -72,6 +72,15 @@ namespace DirtBot.Commands
                 }
                 else
                 {
+                    if (!Regex.IsMatch(prefix, @"[A-Za-zÅÖÄåöä0-9!?+\/%$#]*"))
+                    {
+                        eb = EmbedFactory.CreateError()
+                            .WithTitle(ts.GetMessage("commands/prefix:embed_title"))
+                            .WithDescription("commands/prefix:error_invalid_prefix");
+                        await ReplyAsync(embed: eb.Build());
+                        return;
+                    }
+
                     // Update the prefix cache
                     await pm.CachePrefix(Context.Guild.Id, prefix);
 
@@ -99,7 +108,7 @@ namespace DirtBot.Commands
                     return;
                 }
             }
-
+            
             // Send message
             eb.Description = reply.ToString();
             await ReplyAsync(embed: eb.Build());

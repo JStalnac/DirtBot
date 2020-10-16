@@ -66,7 +66,7 @@ namespace DirtBot.Commands
                 else
                 {
                     Logger.GetLogger("Log Level").Important($"Log level set to {logLevel}");
-                    Logger.SetLogLevel(logLevel.Value);
+                    Logger.MinimumLogLevel = logLevel.Value;
                     eb.Color = EmbedFactory.Success;
                     eb.Description = $"Set log level to {logLevel}";
                 }

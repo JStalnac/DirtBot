@@ -15,13 +15,15 @@ namespace DirtBot.Services
         Tags = 2 << 2
     }
 
-    public class HelpProviderService : ServiceBase
+    public class HelpProviderService
     {
         private readonly CommandService cs;
+        private readonly IServiceProvider services;
 
-        public HelpProviderService(CommandService commandService)
+        public HelpProviderService(IServiceProvider services, CommandService commandService)
         {
             cs = commandService;
+            this.services = services;
         }
 
         public async Task<Embed> HelpAsync(ICommandContext context, string query, SearchContext searchContext)
@@ -62,7 +64,7 @@ namespace DirtBot.Services
             if (query is null)
                 throw new ArgumentNullException(nameof(query));
 
-            var ec = await cs.GetExecutableCommandsAsync(context, Services);
+            var ec = await cs.GetExecutableCommandsAsync(context, services);
 
             if (searchContext.HasFlag(SearchContext.Commands))
             {

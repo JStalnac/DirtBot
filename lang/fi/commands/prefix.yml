@@ -6,4 +6,4 @@ error_private_messages:
     - "Et voi vaihtaa prefixiä yksityisviesteissä."
     - "Olemme yksityisviesteissä, joten et voi vaihtaa prefixiä"
 error_same_prefix: "Tuo on palvelimen tämänhetkinen prefix!"
-quote_hint: 'Vinkki: Voit lisätä **"** tekstin ympärille, jotta saat prefixiisi välejä```"Tällä tavalla :o"```'
+error_invalid_prefix: "Prefixissä on epäkelpo"

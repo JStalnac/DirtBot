@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 
 namespace DirtBot.Database.Models
@@ -10,7 +9,6 @@ namespace DirtBot.Database.Models
         /// The user or guild that this translation should be used with.
         /// </summary>
         [Key]
-        [Column(TypeName = "BIGINT")]
         public ulong Id { get; set; }
 
         private string language;

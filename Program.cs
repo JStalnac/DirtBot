@@ -1,67 +1,140 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using DirtBot.Database;
+using DirtBot.Services;
+using DirtBot.Services.Options;
 using DirtBot.Translation;
+using Discord.Addons.Hosting;
+using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace DirtBot
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        public static IServiceProvider Services { get; private set; }
+        public static ConnectionMultiplexer Redis { get; private set; }
+        public static IConfigurationRoot Configuration { get; private set; }
+
+        public static async Task Main(string[] args)
         {
             if (!Directory.Exists("logs"))
                 Directory.CreateDirectory("logs");
             string logFile = $"logs/{DateTimeOffset.Now.ToUnixTimeSeconds()}.log";
 
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-            {
-                var log = Logger.GetLogger("Exception Logger");
-                log.Critical($"The application has thrown an unhandled exception.\nIf you think this is an error please report it on Github with the stack trace :) https://github.com/JStalnac/DirtBot/issues\nTerminating: {e.IsTerminating}\nCleaning up");
-
-                try
-                {
-                    // Write exception
-                    File.AppendAllText(logFile, e.ExceptionObject.ToString());
-                    // Clean up stuff safely
-                    CleanUp();
-                }
-                catch { }
-            };
-            // Console cleaning
-            Console.CancelKeyPress += (sender, e) =>
-            {
-                var log = Logger.GetLogger("Main");
-                log.Important("Cancel key press received.\nCleaning up...");
-                CleanUp();
-                log.Important("Done!\nExit 0");
-                Environment.Exit(0);
-            };
-
-            string PadCenter(string s, int width, char c)
-            {
-                if (s == null || width <= s.Length) return s;
-
-                int padding = width - s.Length;
-                return s.PadLeft(s.Length + padding / 2, c).PadRight(width, c);
-            }
-
             // Enable file output
-            Logger.SetLogFile(logFile);
-
-            string restart = " -[ RESTART ]- ";
-            restart = PadCenter(restart, 90, '=');
-            File.AppendAllText(logFile, restart + "\n");
+            Logger.LogFile = logFile;
 
             var log = Logger.GetLogger("Main");
             log.Important("Starting! Hello World!");
 
-            new Dirtbot().StartAsync().Wait();
+            try
+            {
+                using var host = CreateHostBuilder(args).Build();
+                if (Redis is null)
+                {
+                    log.Critical("Redis is not connected.");
+                    return;
+                }
+                Services = host.Services;
+                log.Info("Starting host...");
+                await host.StartAsync();
+                log.Info("Host started");
+                await host.WaitForShutdownAsync();
+            }
+            catch (Exception ex)
+            {
+                log.Critical("The application threw an unhandled exception.", ex);
+            }
         }
 
-        static void CleanUp()
-        {
-            Dirtbot.Client?.LogoutAsync();
-            Dirtbot.Redis?.Close(true);
-        }
+        public static IHostBuilder CreateHostBuilder(string[] args)
+            => Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(x =>
+                {
+                    x.SetBasePath(Directory.GetCurrentDirectory())
+                        .AddCommandLine(args)
+                        .AddEnvironmentVariables()
+                        .AddJsonFile("appsettings.json");
+                })
+                .ConfigureLogging(options =>
+                {
+                    options.ClearProviders();
+                })
+                .ConfigureDiscordHost<DiscordSocketClient>((context, config) =>
+                {
+                    config.SocketConfig = new DiscordSocketConfig
+                    {
+                        ExclusiveBulkDelete = true
+                    };
+                    config.Token = context.Configuration["Token"];
+                })
+                .UseCommandService((context, config) =>
+                {
+                    config.DefaultRunMode = Discord.Commands.RunMode.Async;
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    // Connect to Redis
+                    var logger = Logger.GetLogger<Program>();
+                    logger.Info("Configuring services...");
+
+                    // Database
+                    services.AddDbContextPool<DatabaseContext>(options => options.UseSqlite(context.Configuration.GetConnectionString("Sqlite")));
+
+                    ConnectionMultiplexer redis = null;
+                    try
+                    {
+                        string connectionString = context.Configuration.GetConnectionString("Redis");
+                        if (String.IsNullOrEmpty(connectionString))
+                            logger.Critical("Redis connection string not specified");
+                        else
+                        {
+                            logger.Info("Connecting to Redis");
+                            redis = ConnectionMultiplexer.Connect(connectionString);
+                            logger.Info("Connected to Redis");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Critical("Failed to connect to Redis", ex);
+                    }
+
+                    if (redis is null)
+                    {
+                        // So that you can migrate EF without a Redis connection.
+                        logger.Critical("Redis is not connected so other services will not be loaded.");
+                        return;
+                    }
+
+                    Redis = redis;
+                    services.AddSingleton(redis);
+
+                    logger.Info("Loading translations...");
+                    TranslationManager.LoadTranslations().Wait();
+                    logger.Info("Translations loaded");
+
+                    // Required services
+                    services.AddSingleton<CategoryManagerService>();
+                    services.AddSingleton<PrefixManagerService>();
+                    services.Configure<PrefixManagerOptions>(options =>
+                    {
+                        options.DefaultPrefix = context.Configuration["DefaultPrefix"];
+                    });
+                    services.AddSingleton<HelpProviderService>();
+                    services.AddHostedService<CommandHandlerService>();
+
+                    // Other services
+                    services.AddHostedService<CustomStatusService>();
+                    services.AddHostedService<LoggingService>();
+
+                    logger.Info("Services configured");
+                });
     }
 }

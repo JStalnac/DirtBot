@@ -1,4 +1,5 @@
 ﻿using Discord;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace DirtBot.Services
 {
-    public class CategoryManagerService : ServiceBase
+    public class CategoryManagerService
     {
+        private readonly ConnectionMultiplexer redis;
+
+        public CategoryManagerService(ConnectionMultiplexer redis)
+        {
+            this.redis = redis;
+        }
+
         /// <summary>
         /// Gets if a category is disabled in a channel.
         /// </summary>
@@ -40,7 +48,7 @@ namespace DirtBot.Services
         /// <returns></returns>
         public async Task<string[]> GetDisabledCategoriesAsync(ulong guild)
         {
-            var db = Redis.GetDatabase(1);
+            var db = redis.GetDatabase(1);
             var result = await db.SetMembersAsync($"disabled_modules:{guild}");
             return new List<string>(result.Select(x => x.ToString())).ToArray();
         }
@@ -52,7 +60,7 @@ namespace DirtBot.Services
         /// <returns></returns>
         public async Task<string[]> GetDisabledCategoriesGlobalAsync()
         {
-            var rdb = Redis.GetDatabase(1);
+            var rdb = redis.GetDatabase(1);
             var result = await rdb.SetMembersAsync($"disabled_modules");
             return new List<string>(result.Select(x => x.ToString())).ToArray();
         }
@@ -69,7 +77,7 @@ namespace DirtBot.Services
             if (String.IsNullOrEmpty(category?.TrimEnd()))
                 throw new ArgumentNullException(nameof(category));
 
-            var db = Redis.GetDatabase(1);
+            var db = redis.GetDatabase(1);
             return db.SetAddAsync($"disabled_modules:{guild}", category);
         }
 
@@ -86,7 +94,7 @@ namespace DirtBot.Services
                 throw new ArgumentNullException(nameof(category));
 
             Logger.GetLogger(this).Important($"Module disabled globally: {category}");
-            var db = Redis.GetDatabase(1);
+            var db = redis.GetDatabase(1);
             return db.SetAddAsync($"disabled_modules", category);
         }
 
@@ -103,7 +111,7 @@ namespace DirtBot.Services
                 throw new ArgumentNullException(nameof(category));
 
             Logger.GetLogger(this).Important($"Module enabled globally: {category}");
-            var db = Redis.GetDatabase(1);
+            var db = redis.GetDatabase(1);
             return db.SetRemoveAsync($"disabled_modules", category);
         }
 
@@ -119,7 +127,7 @@ namespace DirtBot.Services
             if (String.IsNullOrEmpty(category?.Trim()))
                 throw new ArgumentNullException(nameof(category));
 
-            var db = Redis.GetDatabase(1);
+            var db = redis.GetDatabase(1);
             return db.SetRemoveAsync($"disabled_modules:{guild}", category);
         }
     }

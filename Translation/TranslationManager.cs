@@ -1,8 +1,9 @@
 ﻿using DirtBot.Database;
+using DirtBot.Database.Models;
 using DirtBot.Extensions;
 using Discord;
 using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
+using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace DirtBot.Translation
         private static readonly Random random = new Random();
         private static readonly Logger log = Logger.GetLogger<TranslationManager>();
         private static CultureInfo DefaultLanguage { get; } = new CultureInfo("en");
-
+        
         private TranslationDataDirectory TranslationData { get; }
         private bool Default { get; }
 
@@ -340,15 +341,15 @@ namespace DirtBot.Translation
             try
             {
                 // Get cached data from Redis
-                var rdb = Dirtbot.Redis.GetDatabase(0);
+                var rdb = Program.Redis.GetDatabase(0);
                 string language = await rdb.StringGetAsync($"languages:{id}");
 
                 // Key stored in Redis
                 if (language != null)
                     return new CultureInfo(language);
 
-                // Get the prefix from MySql database
-                using (var db = new DatabaseContext())
+                // Get the prefix from database
+                using (var db = Program.Services.GetRequiredService<DatabaseContext>())
                     language = (await AsyncEnumerable.FirstOrDefaultAsync(db.Languages, p => p.Id == id))?.Language;
                 language ??= "en";
                 var result = new CultureInfo(language);
@@ -372,12 +373,29 @@ namespace DirtBot.Translation
             if (language is null)
                 throw new ArgumentNullException(nameof(language));
 
-            using (var db = new DatabaseContext())
+            using (var db = Program.Services.GetRequiredService<DatabaseContext>())
             {
-                string escaped = MySqlHelper.EscapeString(language.TwoLetterISOLanguageName);
-                int changed = await db.Database.ExecuteSqlRawAsync($"INSERT INTO languages(Id, Language) VALUES ({id}, '{escaped}') ON DUPLICATE KEY UPDATE Language = '{escaped}'");
-                if (changed == 0)
-                    log.Warning($"Language updated but zero rows changed in database. Id: {id} Language: {language.Name}");
+                var data = await ((IAsyncEnumerable<LanguageData>)db.Prefixes).FirstOrDefaultAsync(x => x.Id == id);
+                if (data is null)
+                    await db.AddAsync(new LanguageData
+                    {
+                        Id = id,
+                        Language = language.TwoLetterISOLanguageName
+                    });
+                else
+                {
+                    data.Language = language.TwoLetterISOLanguageName;
+                    db.Entry(data).State = EntityState.Modified;
+                }
+
+                try
+                {
+                    await db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    Logger.GetLogger<TranslationManager>().Warning($"Failed to update preferred language for {id}. Language: '{language.TwoLetterISOLanguageName}'");
+                }
             }
 
             // Update the cache
@@ -387,7 +405,7 @@ namespace DirtBot.Translation
         private static async Task CacheLanguage(ulong id, CultureInfo language)
         {
             // Cache the prefix for the guild in Redis.
-            await Dirtbot.Redis.GetDatabase(0).StringSetAsync($"languages:{id}", language.TwoLetterISOLanguageName, TimeSpan.FromMinutes(30),
+            await Program.Redis.GetDatabase(0).StringSetAsync($"languages:{id}", language.TwoLetterISOLanguageName, TimeSpan.FromMinutes(30),
                 flags: CommandFlags.FireAndForget);
         }
 

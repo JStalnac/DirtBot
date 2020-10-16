@@ -6,10 +6,12 @@ Properties/
 *.user
 
 # Config files
-config.yml
+config.yml # Old
+appsettings.json
 
 # EF Core
 Migrations/
+db.sqlite
 
 # Builds
 bin/

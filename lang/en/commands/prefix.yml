@@ -6,4 +6,4 @@ error_private_messages:
     - "You can't change the prefix in private messages'"
     - "We are in private messages so you can't change the prefix."
 error_same_prefix: "That is the current prefix of this guild!"
-quote_hint: 'Hint: You can add **"** around the text to have spaces in your prefix.```"Like this"```'
+error_invalid_prefix: "The prefix contains invalid symbols"
