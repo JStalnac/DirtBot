@@ -4,6 +4,7 @@ my_prefix_is: 'My prefix is **{0}**'
 prefix_set_message: "The server's prefix is now **{0}**"
 error_private_messages: 
     - "You can't change the prefix in private messages'"
-    - "We are in private messages so you can't change the prefix."
+    - "We are in private messages so you can't change the prefix"
 error_same_prefix: "That is the current prefix of this guild!"
 error_invalid_prefix: "The prefix contains invalid symbols"
+prefix_reset_message: "Reset this server's prefix"

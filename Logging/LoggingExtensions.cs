@@ -16,7 +16,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace DirtBot
+namespace DirtBot.Logging
 {
     public static class LoggerBuilderExtensions
     {

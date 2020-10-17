@@ -1,3 +1,8 @@
 ﻿embed_title: 'Kieliasetukset'
 language_set_message: 'Käytän nyt kieltä **{0}**'
 error_unknown_language: "En tiedä mikä tuo kieli on"
+error_language_not_found:
+ - "En osaa tuota kieltä vielä"
+ - "En osaa tuota kieltä"
+ - "En osaa puhua tuota kieltä"
+ - "En osaa tuota kieltä. Jos haluat kääntää minua eri kielille, voit kysyä omistajaltani"

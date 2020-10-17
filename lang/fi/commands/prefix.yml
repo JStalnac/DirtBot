@@ -7,3 +7,4 @@ error_private_messages:
     - "Olemme yksityisviesteissä, joten et voi vaihtaa prefixiä"
 error_same_prefix: "Tuo on palvelimen tämänhetkinen prefix!"
 error_invalid_prefix: "Prefixissä on epäkelpo"
+prefix_reset_message: "Nollasin tämän palvelimen prefixin"

@@ -2,3 +2,8 @@
 not_a_guild: 'Tämä komento on suoritettava palvelimella!'
 module_disabled: 'Tämä moduuli on poistettu käytöstä tällä palvelimella'
 module_disabled_global: 'Tämä moduuli on poistettu käytöstä kaikilta palvelimilta'
+command_not_found:
+ - 'En löytänyt tuota komentoa'
+ - 'Anteeksi, en tiedä mitä tarkoitat tuolla'
+ - 'En tunne tuota komentoa'
+command_errored: 'Komentoa suorittaessa tapahtui virhe'

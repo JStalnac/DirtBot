@@ -1,4 +1,5 @@
 ﻿using DirtBot.Extensions;
+using DirtBot.Logging;
 using DirtBot.Translation;
 using Discord;
 using Discord.Addons.Hosting;
@@ -69,7 +70,7 @@ namespace DirtBot.Services
                 if (message.Channel is IGuildChannel c)
                     pm.RestoreCache(c.GuildId).Release();
                 var context = new SocketCommandContext(client, message);
-                // Log message for debugging
+                // Log message for debugging (doesn't check if the command exists)
                 Logger.GetLogger("Commands").Debug($"Executing command: {GetExecutionInfo(context)}");
                 // Execute command
                 await commands.ExecuteAsync(context, argPos, services);
@@ -89,11 +90,8 @@ namespace DirtBot.Services
             }
         }
 
-        public Task<string> GetPrefix(ICommandContext ctx)
-        {
-            return GetPrefix(ctx.Message);
-        }
-
+        public Task<string> GetPrefix(ICommandContext ctx) => GetPrefix(ctx.Message);
+        
         public Task<string> GetPrefix(IMessage message) => pm.GetPrefixAsync((message.Channel as IGuildChannel)?.GuildId);
 
         public Task<string> GetPrefix(ulong guildId) => pm.GetPrefixAsync(guildId);
@@ -111,19 +109,39 @@ namespace DirtBot.Services
             if (!result.IsSuccess)
             {
                 var ts = await TranslationManager.CreateFor(ctx.Channel);
-                await ctx.Channel.SendMessageAsync(ts.GetMessage(result.ErrorReason)).ConfigureAwait(false);
+                string message;
+                if (command.IsSpecified)
+                {
+                    try
+                    {
+                        message = ts.GetMessage(result.ErrorReason);
+                    }
+                    catch (FormatException)
+                    {
+                        message = ts.GetMessage("errors:command_errored");
+                    }
+                }
+                else
+                    message = ts.GetMessage("command_not_found");
+                
+                await ctx.Channel.SendMessageAsync(message)
+                    .ContinueWith(t => 
+                    {
+                        if (!t.IsCompletedSuccessfully)
+                            Logger.GetLogger("Commands").Info($"Failed to send error message: {t.Exception.InnerException.Message}");
+                        else
+                            t.Result.DeleteAfterDelay(5000).GetAwaiter().GetResult();
+                    }).ConfigureAwait(false);
             }
 
             // Log
-            var logger = Logger.GetLogger("Commands");
             var sb = new StringBuilder();
-
             if (!command.IsSpecified)
                 sb.Append("Unspecified command: ");
             else
                 sb.Append("Executed command: ");
             sb.AppendLine(GetExecutionInfo(ctx));
-            logger.Info(sb.ToString());
+            Logger.GetLogger("Commands").Info(sb.ToString());
         }
 
         private string GetExecutionInfo(ICommandContext ctx)

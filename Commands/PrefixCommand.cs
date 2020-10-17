@@ -1,10 +1,12 @@
 ﻿using DirtBot.Attributes;
 using DirtBot.Extensions;
+using DirtBot.Logging;
 using DirtBot.Services;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
 using System;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -112,6 +114,25 @@ namespace DirtBot.Commands
             // Send message
             eb.Description = reply.ToString();
             await ReplyAsync(embed: eb.Build());
+        }
+
+        [Command("reset-prefix")]
+        [Tags("settings", "system")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "Perms", ErrorMessage = "errors/user:permission_administrator", NotAGuildErrorMessage = "errors:not_a_guild")]
+        [RequireUserPermission(GuildPermission.ManageGuild, Group = "Perms", ErrorMessage = "errors/user:permission_manage_guild", NotAGuildErrorMessage = "errors:not_a_guild")]
+        public async Task ResetPrefix()
+        {
+            // Prepare reply
+            var ts = await TranslationManager.CreateFor(Context.Channel);
+            var eb = EmbedFactory.CreateSuccess()
+                .WithTitle(ts.GetMessage("commands/prefix:embed_title"));
+
+            var messageSend = ReplyAsync(embed: eb.Build());
+
+            await pm.CachePrefix(Context.Guild.Id, pm.DefaultPrefix);
+            await pm.SetPrefixAsync(Context.Guild.Id, pm.DefaultPrefix);
+
+            await messageSend;
         }
     }
 }

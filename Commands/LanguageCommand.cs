@@ -23,16 +23,22 @@ namespace DirtBot.Commands
             var ts = await TranslationManager.CreateFor(Context.Channel);
             eb.Title = ts.GetMessage("commands/language:embed_title");
 
-            // TODO: Warning if language doesn't exist or hasn't been added yet. (Please translate things :) )
-
-            CultureInfo lang;
             try
             {
-                lang = new CultureInfo(language);
-                eb.Color = EmbedFactory.Success;
-                eb.Description = MessageFormatter.Format(ts.GetMessage("commands/language:language_set_message"), lang.TwoLetterISOLanguageName);
-
-                await TranslationManager.SetLanguageAsync(TranslationManager.GetId(Context.Channel), lang);
+                CultureInfo lang = new CultureInfo(language);
+                if (!TranslationManager.HasLanguage(lang))
+                {
+                    // Please translate :)
+                    eb = EmbedFactory.CreateError()
+                        .WithTitle(ts.GetMessage("commands/language:embed_title"))
+                        .WithDescription(MessageFormatter.Format(ts.GetMessage("commands/language:error_language_not_found"), lang.TwoLetterISOLanguageName));
+                }
+                else
+                {
+                    eb.Color = EmbedFactory.Success;
+                    eb.Description = MessageFormatter.Format(ts.GetMessage("commands/language:language_set_message"), lang.TwoLetterISOLanguageName);
+                    await TranslationManager.SetLanguageAsync(TranslationManager.GetId(Context.Channel), lang);
+                }
             }
             catch (CultureNotFoundException)
             {

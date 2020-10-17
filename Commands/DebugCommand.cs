@@ -1,4 +1,5 @@
-﻿using DirtBot.Services;
+﻿using DirtBot.Logging;
+using DirtBot.Services;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;

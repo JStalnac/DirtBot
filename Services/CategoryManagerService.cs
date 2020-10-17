@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using DirtBot.Logging;
+using Discord;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

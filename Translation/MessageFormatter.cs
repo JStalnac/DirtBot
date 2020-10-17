@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using DirtBot.Logging;
+using Discord;
 using SmartFormat;
 using System;
 using System.Threading.Tasks;

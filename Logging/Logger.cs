@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace DirtBot
+namespace DirtBot.Logging
 {
     /// <summary>
     /// Log level that the logger uses.
@@ -84,7 +84,7 @@ namespace DirtBot
                     return;
                 }
 
-                if (String.IsNullOrWhiteSpace(value))
+                if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentNullException(nameof(value));
 
                 try
@@ -110,7 +110,7 @@ namespace DirtBot
             get => datetimeFormat;
             set
             {
-                if (String.IsNullOrEmpty(value) || String.IsNullOrWhiteSpace(value))
+                if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException(nameof(value));
 
                 try
@@ -142,7 +142,7 @@ namespace DirtBot
         {
             // Sanitize the input
             string cleanName = Regex.Replace(name, "[\x00-\x1F\x7F]", "");
-            if (String.IsNullOrEmpty(cleanName) || String.IsNullOrWhiteSpace(cleanName))
+            if (string.IsNullOrEmpty(cleanName) || string.IsNullOrWhiteSpace(cleanName))
                 throw new ArgumentNullException(nameof(name));
             this.name = cleanName;
         }
@@ -216,7 +216,7 @@ namespace DirtBot
         public void Debug(string message, Exception e) => Write(message, LogLevel.Debug, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Debug"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Debug"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Debug(object obj) => Write(obj, LogLevel.Debug);
@@ -235,7 +235,7 @@ namespace DirtBot
         public void Info(string message, Exception e) => Write(message, LogLevel.Info, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Info"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Info"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Info(object obj) => Write(obj, LogLevel.Info);
@@ -254,7 +254,7 @@ namespace DirtBot
         public void Warning(string message, Exception e) => Write(message, LogLevel.Warning, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Warning"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Warning"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Warning(object obj) => Write(obj, LogLevel.Warning);
@@ -273,7 +273,7 @@ namespace DirtBot
         public void Error(string message, Exception e) => Write(message, LogLevel.Error, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Error"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Error"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Error(object obj) => Write(obj, LogLevel.Error);
@@ -292,7 +292,7 @@ namespace DirtBot
         public void Important(string message, Exception e) => Write(message, LogLevel.Important, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Important"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Important"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Important(object obj) => Write(obj, LogLevel.Important);
@@ -311,7 +311,7 @@ namespace DirtBot
         public void Critical(string message, Exception e) => Write(message, LogLevel.Critical, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Critical"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Critical"/> log level using the provided object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Critical(object obj) => Write(obj, LogLevel.Critical);
@@ -331,7 +331,7 @@ namespace DirtBot
         }
 
         /// <summary>
-        /// Writes a log message using an object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message using an object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         /// <param name="logLevel">Log level</param>
@@ -351,7 +351,7 @@ namespace DirtBot
         }
 
         /// <summary>
-        /// Writes a log message in a custom color using an object's <see cref="System.Object.ToString"/> method.
+        /// Writes a log message in a custom color using an object's <see cref="object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         /// <param name="fore">Foreground color</param>
@@ -375,7 +375,7 @@ namespace DirtBot
             // and to a file.
             lock (writeLock)
             {
-                if (message == null || String.IsNullOrEmpty(message.Trim()))
+                if (message == null || string.IsNullOrEmpty(message.Trim()))
                 {
                     if (exception == null)
                         message = "null"; // No message, no exception
@@ -401,7 +401,7 @@ namespace DirtBot
                 Task fileWrite = null;
                 try
                 {
-                    if (!String.IsNullOrEmpty(logFile))
+                    if (!string.IsNullOrEmpty(logFile))
                     {
                         // For safety reasons, the variable might get modified before it's written to the log file
                         string p = prefix;

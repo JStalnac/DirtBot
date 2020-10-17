@@ -1,4 +1,5 @@
 ﻿using DirtBot.Database;
+using DirtBot.Logging;
 using DirtBot.Services;
 using DirtBot.Services.Options;
 using DirtBot.Translation;
@@ -119,6 +120,8 @@ namespace DirtBot
                     logger.Info("Loading translations...");
                     TranslationManager.LoadTranslations().Wait();
                     logger.Info("Translations loaded");
+
+                    var ts = TranslationManager.CreateFor(null).GetAwaiter().GetResult();
 
                     // Required services
                     services.AddSingleton<CategoryManagerService>();

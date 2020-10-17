@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using DirtBot.Logging;
+using Discord;
 using Discord.Addons.Hosting;
 using Discord.Commands;
 using Discord.WebSocket;

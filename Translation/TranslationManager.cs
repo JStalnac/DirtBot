@@ -1,6 +1,7 @@
 ﻿using DirtBot.Database;
 using DirtBot.Database.Models;
 using DirtBot.Extensions;
+using DirtBot.Logging;
 using Discord;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -146,7 +147,7 @@ namespace DirtBot.Translation
             return null;
         }
 
-        public bool HasLanguage(CultureInfo cultureInfo)
+        public static bool HasLanguage(CultureInfo cultureInfo)
         {
             if (cultureInfo is null)
                 return false;
@@ -375,7 +376,7 @@ namespace DirtBot.Translation
 
             using (var db = Program.Services.GetRequiredService<DatabaseContext>())
             {
-                var data = await ((IAsyncEnumerable<LanguageData>)db.Prefixes).FirstOrDefaultAsync(x => x.Id == id);
+                var data = await AsyncEnumerable.FirstOrDefaultAsync(db.Languages, x => x.Id == id);
                 if (data is null)
                     await db.AddAsync(new LanguageData
                     {
