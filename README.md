@@ -10,8 +10,6 @@ Coming...
    - Install the EF Core CLI Tool with `dotnet tool install --global dotnet-ef`
    - Run `dotnet ef migrations add InitialCreate`
    - Run `dotnet ef database update`
-   - NOTE 1: Make sure you have your MySql database running else this will complain
-   - NOTE 2: Update credentials in `Database/DatabaseContext.cs`
 ### Installing Redis
 #### If you are on Windows:
    - Follow [these instruction](https://docs.microsoft.com/en-us/windows/wsl/install-win10) on how to enable Windows Subsystem for Linux
