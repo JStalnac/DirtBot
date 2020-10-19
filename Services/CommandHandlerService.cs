@@ -1,4 +1,4 @@
-﻿using DirtBot.Extensions;
+﻿using DirtBot.Utilities;
 using DirtBot.Logging;
 using DirtBot.Translation;
 using Discord;

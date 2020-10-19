@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace DirtBot.Services
+namespace DirtBot.Utilities
 {
     /// <summary>
     /// Provides static methods for creating embeds.

@@ -1,6 +1,6 @@
 ﻿using DirtBot.Database;
 using DirtBot.Database.Models;
-using DirtBot.Extensions;
+using DirtBot.Utilities;
 using DirtBot.Logging;
 using DirtBot.Services.Options;
 using Microsoft.EntityFrameworkCore;

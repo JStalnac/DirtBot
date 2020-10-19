@@ -1,5 +1,5 @@
 ﻿using DirtBot.Attributes;
-using DirtBot.Extensions;
+using DirtBot.Utilities;
 using DirtBot.Logging;
 using DirtBot.Services;
 using DirtBot.Translation;

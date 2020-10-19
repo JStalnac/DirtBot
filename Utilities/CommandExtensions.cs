@@ -1,6 +1,5 @@
 ﻿using DirtBot.Attributes;
 using DirtBot.Attributes.Preconditions;
-using DirtBot.Services;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DirtBot.Extensions
+namespace DirtBot.Utilities
 {
     public static class CommandExtensions
     {

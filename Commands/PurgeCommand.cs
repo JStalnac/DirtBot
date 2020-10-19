@@ -1,6 +1,6 @@
 ﻿using DirtBot.Attributes;
 using DirtBot.Attributes.Preconditions;
-using DirtBot.Extensions;
+using DirtBot.Utilities;
 using DirtBot.Translation;
 using Discord;
 using Discord.Commands;

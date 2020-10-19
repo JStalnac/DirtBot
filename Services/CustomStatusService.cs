@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using DirtBot.Extensions;
+using DirtBot.Utilities;
 using Discord.Addons.Hosting;
 using Discord.WebSocket;
 

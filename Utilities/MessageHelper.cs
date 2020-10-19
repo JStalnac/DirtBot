@@ -1,7 +1,7 @@
 ﻿using Discord;
 using System.Threading.Tasks;
 
-namespace DirtBot.Extensions
+namespace DirtBot.Utilities
 {
     public static class MessageHelper
     {

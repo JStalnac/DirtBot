@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace DirtBot.Extensions
+namespace DirtBot.Utilities
 {
     public static class TaskExtensions
     {
