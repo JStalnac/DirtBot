@@ -21,20 +21,19 @@ namespace DirtBot
     {
         public static IServiceProvider Services { get; private set; }
         public static ConnectionMultiplexer Redis { get; private set; }
-        public static IConfigurationRoot Configuration { get; private set; }
 
         public static async Task Main(string[] args)
         {
             if (!Directory.Exists("logs"))
                 Directory.CreateDirectory("logs");
-            string logFile = $"logs/{DateTimeOffset.Now.ToUnixTimeSeconds()}.log";
-
+            
             // Enable file output
-            Logger.LogFile = logFile;
-
+            Logger.LogFile = LogFileUpdaterService.GetLogFile(DateTime.Now);
+            Logger.UseTypeFullName = true;
+            
             var log = Logger.GetLogger("Main");
             log.Important("Starting! Hello World!");
-
+            
             try
             {
                 using var host = CreateHostBuilder(args).Build();
@@ -80,19 +79,19 @@ namespace DirtBot
                 {
                     config.DefaultRunMode = Discord.Commands.RunMode.Async;
                 })
-                .ConfigureServices((context, services) =>
+                .ConfigureServices((c, services) =>
                 {
                     // Connect to Redis
                     var logger = Logger.GetLogger<Program>();
                     logger.Info("Configuring services...");
 
                     // Database
-                    services.AddDbContextPool<DatabaseContext>(options => options.UseSqlite(context.Configuration.GetConnectionString("Sqlite")));
+                    services.AddDbContextPool<DatabaseContext>(options => options.UseSqlite(c.Configuration.GetConnectionString("Sqlite")));
 
                     ConnectionMultiplexer redis = null;
                     try
                     {
-                        string connectionString = context.Configuration.GetConnectionString("Redis");
+                        string connectionString = c.Configuration.GetConnectionString("Redis");
                         if (String.IsNullOrEmpty(connectionString))
                             logger.Critical("Redis connection string not specified");
                         else
@@ -123,15 +122,29 @@ namespace DirtBot
 
                     var ts = TranslationManager.CreateFor(null).GetAwaiter().GetResult();
 
+                    var section = c.Configuration.GetSection("Services");
+
                     // Required services
                     services.AddSingleton<CategoryManagerService>();
                     services.AddSingleton<PrefixManagerService>();
                     services.Configure<PrefixManagerOptions>(options =>
                     {
-                        options.DefaultPrefix = context.Configuration["DefaultPrefix"];
+                        options.DefaultPrefix = c.Configuration["DefaultPrefix"];
                     });
                     services.AddSingleton<HelpProviderService>();
                     services.AddHostedService<CommandHandlerService>();
+                    services.AddHostedService<LogFileUpdaterService>();
+                    services.Configure<LogFileUpdaterOptions>(options =>
+                    {
+                        try
+                        {
+                            options.UpdateInterval = TimeSpan.Parse(section["LogFileUpdater:Interval"]);
+                        }
+                        catch (FormatException)
+                        {
+                            Logger.GetLogger(options).Warning("Failed to parse file update interval");
+                        }
+                    });
 
                     // Other services
                     services.AddHostedService<CustomStatusService>();

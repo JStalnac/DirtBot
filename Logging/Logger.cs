@@ -84,7 +84,7 @@ namespace DirtBot.Logging
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(value))
+                if (String.IsNullOrWhiteSpace(value))
                     throw new ArgumentNullException(nameof(value));
 
                 try
@@ -110,7 +110,7 @@ namespace DirtBot.Logging
             get => datetimeFormat;
             set
             {
-                if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
+                if (String.IsNullOrEmpty(value) || String.IsNullOrWhiteSpace(value))
                     throw new ArgumentException(nameof(value));
 
                 try
@@ -129,6 +129,12 @@ namespace DirtBot.Logging
                 datetimeFormat = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets whether the full namespace and name of a type should be used or just the name when naming loggers.
+        /// </summary>
+        public static bool UseTypeFullName { get; set; }
+
         // I'm not American
         private static string datetimeFormat = "dd/MM/yyyy HH:mm:ssZzzz";
 
@@ -142,7 +148,7 @@ namespace DirtBot.Logging
         {
             // Sanitize the input
             string cleanName = Regex.Replace(name, "[\x00-\x1F\x7F]", "");
-            if (string.IsNullOrEmpty(cleanName) || string.IsNullOrWhiteSpace(cleanName))
+            if (String.IsNullOrEmpty(cleanName) || String.IsNullOrWhiteSpace(cleanName))
                 throw new ArgumentNullException(nameof(name));
             this.name = cleanName;
         }
@@ -172,14 +178,14 @@ namespace DirtBot.Logging
         /// Gets a new logger for the specified type.
         /// </summary>
         /// <returns></returns>
-        public static Logger GetLogger<T>(T type) => new Logger(typeof(T).Name);
+        public static Logger GetLogger<T>(T type) => GetLogger<T>();
 
         /// <summary>
         /// Gets a new logger for the specified type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Logger GetLogger<T>() => new Logger(typeof(T).Name);
+        public static Logger GetLogger<T>() => UseTypeFullName ? new Logger(typeof(T).FullName) : new Logger(typeof(T).Name);
 
         /// <summary>
         /// Gets a new logger with the specified name.
@@ -216,7 +222,7 @@ namespace DirtBot.Logging
         public void Debug(string message, Exception e) => Write(message, LogLevel.Debug, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Debug"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Debug"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Debug(object obj) => Write(obj, LogLevel.Debug);
@@ -235,7 +241,7 @@ namespace DirtBot.Logging
         public void Info(string message, Exception e) => Write(message, LogLevel.Info, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Info"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Info"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Info(object obj) => Write(obj, LogLevel.Info);
@@ -254,7 +260,7 @@ namespace DirtBot.Logging
         public void Warning(string message, Exception e) => Write(message, LogLevel.Warning, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Warning"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Warning"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Warning(object obj) => Write(obj, LogLevel.Warning);
@@ -273,7 +279,7 @@ namespace DirtBot.Logging
         public void Error(string message, Exception e) => Write(message, LogLevel.Error, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Error"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Error"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Error(object obj) => Write(obj, LogLevel.Error);
@@ -292,7 +298,7 @@ namespace DirtBot.Logging
         public void Important(string message, Exception e) => Write(message, LogLevel.Important, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Important"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Important"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Important(object obj) => Write(obj, LogLevel.Important);
@@ -311,7 +317,7 @@ namespace DirtBot.Logging
         public void Critical(string message, Exception e) => Write(message, LogLevel.Critical, e);
 
         /// <summary>
-        /// Writes a log message on <see cref="LogLevel.Critical"/> log level using the provided object's <see cref="object.ToString"/> method.
+        /// Writes a log message on <see cref="LogLevel.Critical"/> log level using the provided object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         public void Critical(object obj) => Write(obj, LogLevel.Critical);
@@ -331,7 +337,7 @@ namespace DirtBot.Logging
         }
 
         /// <summary>
-        /// Writes a log message using an object's <see cref="object.ToString"/> method.
+        /// Writes a log message using an object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         /// <param name="logLevel">Log level</param>
@@ -351,7 +357,7 @@ namespace DirtBot.Logging
         }
 
         /// <summary>
-        /// Writes a log message in a custom color using an object's <see cref="object.ToString"/> method.
+        /// Writes a log message in a custom color using an object's <see cref="System.Object.ToString"/> method.
         /// </summary>
         /// <param name="obj">Object</param>
         /// <param name="fore">Foreground color</param>
@@ -375,7 +381,7 @@ namespace DirtBot.Logging
             // and to a file.
             lock (writeLock)
             {
-                if (message == null || string.IsNullOrEmpty(message.Trim()))
+                if (message == null || String.IsNullOrEmpty(message.Trim()))
                 {
                     if (exception == null)
                         message = "null"; // No message, no exception
@@ -401,7 +407,7 @@ namespace DirtBot.Logging
                 Task fileWrite = null;
                 try
                 {
-                    if (!string.IsNullOrEmpty(logFile))
+                    if (!String.IsNullOrEmpty(logFile))
                     {
                         // For safety reasons, the variable might get modified before it's written to the log file
                         string p = prefix;
