@@ -37,7 +37,7 @@ namespace DirtBot.Services
                 LogSeverity.Critical => LogLevel.Critical,
                 LogSeverity.Error => LogLevel.Error,
                 LogSeverity.Warning => LogLevel.Info,
-                LogSeverity.Verbose => LogLevel.Info,
+                LogSeverity.Verbose => LogLevel.Debug,
                 LogSeverity.Debug => LogLevel.Debug,
                 _ => LogLevel.Info
             }, msg.Exception);

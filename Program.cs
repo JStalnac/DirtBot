@@ -10,9 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DirtBot
@@ -26,14 +28,14 @@ namespace DirtBot
         {
             if (!Directory.Exists("logs"))
                 Directory.CreateDirectory("logs");
-            
+
             // Enable file output
             Logger.LogFile = LogFileUpdaterService.GetLogFile(DateTime.Now);
             Logger.UseTypeFullName = true;
-            
+
             var log = Logger.GetLogger("Main");
             log.Important("Starting! Hello World!");
-            
+
             try
             {
                 using var host = CreateHostBuilder(args).Build();
@@ -47,6 +49,10 @@ namespace DirtBot
                 await host.StartAsync();
                 log.Info("Host started");
                 await host.WaitForShutdownAsync();
+            }
+            catch (OptionsValidationException ex)
+            {
+                log.Critical($"Option {ex.OptionsType} failed to validate: {String.Join('\n', ex.Failures)}");
             }
             catch (Exception ex)
             {
@@ -63,15 +69,16 @@ namespace DirtBot
                         .AddEnvironmentVariables()
                         .AddJsonFile("appsettings.json");
                 })
-                .ConfigureLogging(options =>
+                .ConfigureLogging(o =>
                 {
-                    options.ClearProviders();
+                    o.ClearProviders();
                 })
                 .ConfigureDiscordHost<DiscordSocketClient>((context, config) =>
                 {
                     config.SocketConfig = new DiscordSocketConfig
                     {
-                        ExclusiveBulkDelete = true
+                        ExclusiveBulkDelete = true,
+                        LogLevel = Discord.LogSeverity.Debug
                     };
                     config.Token = context.Configuration["Token"];
                 })
@@ -81,6 +88,9 @@ namespace DirtBot
                 })
                 .ConfigureServices((c, services) =>
                 {
+                    Enum.TryParse(typeof(Logging.LogLevel), c.Configuration["LogLevel"], out object logLevel);
+                    Logger.MinimumLogLevel = logLevel != null ? (Logging.LogLevel)logLevel : Logging.LogLevel.Info;
+
                     // Connect to Redis
                     var logger = Logger.GetLogger<Program>();
                     logger.Info("Configuring services...");
@@ -126,28 +136,30 @@ namespace DirtBot
 
                     // Required services
                     services.AddSingleton<CategoryManagerService>();
-                    services.AddSingleton<PrefixManagerService>();
-                    services.Configure<PrefixManagerOptions>(options =>
+                    services.AddSingleton<PrefixManagerService>()
+                    .Configure<PrefixManagerOptions>(options =>
                     {
                         options.DefaultPrefix = c.Configuration["DefaultPrefix"];
                     });
                     services.AddSingleton<HelpProviderService>();
                     services.AddHostedService<CommandHandlerService>();
-                    services.AddHostedService<LogFileUpdaterService>();
-                    services.Configure<LogFileUpdaterOptions>(options =>
-                    {
-                        try
-                        {
-                            options.UpdateInterval = TimeSpan.Parse(section["LogFileUpdater:Interval"]);
-                        }
-                        catch (FormatException)
-                        {
-                            Logger.GetLogger(options).Warning("Failed to parse file update interval");
-                        }
-                    });
+                    services.AddHostedService<LogFileUpdaterService>()
+                    .Configure<LogFileUpdaterOptions>(section.GetSection("LogFileUpdater"));
+                    //.Configure<LogFileUpdaterOptions>(options =>
+                    //{
+                    //    try
+                    //    {
+                    //        options.UpdateInterval = TimeSpan.Parse(section["LogFileUpdater:Interval"]);
+                    //    }
+                    //    catch (FormatException)
+                    //    {
+                    //        Logger.GetLogger(options).Warning("Failed to parse file update interval");
+                    //    }
+                    //});
 
                     // Other services
-                    services.AddHostedService<CustomStatusService>();
+                    services.AddHostedService<CustomStatusService>()
+                    .Configure<CustomStatusServiceOptions>(section.GetSection("CustomStatusService"));
                     services.AddHostedService<LoggingService>();
 
                     logger.Info("Services configured");

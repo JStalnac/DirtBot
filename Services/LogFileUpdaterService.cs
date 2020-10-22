@@ -39,7 +39,6 @@ namespace DirtBot.Services
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             timer.Stop();
-            timer.Dispose();
             return base.StopAsync(cancellationToken);
         }
 
