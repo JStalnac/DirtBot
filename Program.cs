@@ -88,6 +88,7 @@ namespace DirtBot
                 })
                 .ConfigureServices((c, services) =>
                 {
+                    // Set log level from appsettings
                     Enum.TryParse(typeof(Logging.LogLevel), c.Configuration["LogLevel"], out object logLevel);
                     Logger.MinimumLogLevel = logLevel != null ? (Logging.LogLevel)logLevel : Logging.LogLevel.Info;
 
