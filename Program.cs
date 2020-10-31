@@ -131,8 +131,6 @@ namespace DirtBot
                     TranslationManager.LoadTranslations().Wait();
                     logger.Info("Translations loaded");
 
-                    var ts = TranslationManager.CreateFor(null).GetAwaiter().GetResult();
-
                     var section = c.Configuration.GetSection("Services");
 
                     // Required services
@@ -146,17 +144,6 @@ namespace DirtBot
                     services.AddHostedService<CommandHandlerService>();
                     services.AddHostedService<LogFileUpdaterService>()
                     .Configure<LogFileUpdaterOptions>(section.GetSection("LogFileUpdater"));
-                    //.Configure<LogFileUpdaterOptions>(options =>
-                    //{
-                    //    try
-                    //    {
-                    //        options.UpdateInterval = TimeSpan.Parse(section["LogFileUpdater:Interval"]);
-                    //    }
-                    //    catch (FormatException)
-                    //    {
-                    //        Logger.GetLogger(options).Warning("Failed to parse file update interval");
-                    //    }
-                    //});
 
                     // Other services
                     services.AddHostedService<CustomStatusService>()
