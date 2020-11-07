@@ -3,3 +3,5 @@ delete_success:
     - 'I deleted {0} messages'
     - 'Messages deleted: {0}'
 delet_this_success: 'There you go!'
+error_older_than_two_weeks:
+    - 'I cannot delete messages older than two weeks'

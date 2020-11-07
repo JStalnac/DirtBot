@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace DirtBot.Commands
 {
@@ -22,10 +23,26 @@ namespace DirtBot.Commands
             await Context.Message.DeleteAsync();
             // Get messages and delete
             var messages = await Context.Channel.GetMessagesAsync(limit).FlattenAsync();
-            await (Context.Channel as ITextChannel)?.DeleteMessagesAsync(messages);
+            bool failedToDelete = false;
+            try
+            {
+                await (Context.Channel as ITextChannel)?.DeleteMessagesAsync(messages);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // One or more of messages older than two weeks
+                failedToDelete = true;
+            }
             // Respond
             var ts = await TranslationManager.CreateFor(Context.Channel);
-            await Context.Channel.SendMessageFormatted(ts.GetMessage("commands/purge:delete_success"), args: messages.Count());
+            string message;
+            if (failedToDelete)
+                message = ts.GetMessage("commands/purge:error_older_than_two_weeks");
+            else
+                message = ts.GetMessage("commands/purge:delete_success");
+            // Send response
+            await Context.Channel.SendMessageFormatted(message, args: messages.Count())
+                .ContinueWith(async msg => await msg.Result.DeleteAfterDelay(5000)).ConfigureAwait(false);
         }
 
         [Command("delet this")]
